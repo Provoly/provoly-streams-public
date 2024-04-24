@@ -14,12 +14,13 @@ import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
 
+import java.util.stream.Collectors;
+
 @ApplicationScoped
 public class TopologyProducer {
 
     // TODO : Correct parameters for bootstrap server
-    // TODO : REad from all mesures
-    // TODO : All correct serializers/de-serializers
+    // TODO : Correct parameters for kafak topics
     // TODO : Correctly managed kubernetes restart (loose data)
 
     @Produces
@@ -28,7 +29,7 @@ public class TopologyProducer {
 
         var equipmentHypervisorSerde = new ObjectMapperSerde<>(EquipmentHypervisor.class);
         var itemDtoSerde = new ObjectMapperSerde<>(ItemDto.class);
-        var equipmentResultSerde = new JsonObjectSerde();//new ObjectMapperSerde<Map<String, Object>>(Map.class);
+        var equipmentResultSerde = new JsonObjectSerde();
 
         KTable<String, EquipmentHypervisor> equipment = builder
                 .stream("equipment", Consumed.with(Serdes.String(), equipmentHypervisorSerde))
@@ -46,13 +47,23 @@ public class TopologyProducer {
         return builder.build();
     }
 
-    private JsonObject join(EquipmentHypervisor eqt, ItemDto measure) {
+    private JsonObject join(EquipmentHypervisor eqt, ItemDto measures) {
         var result = new JsonObject();
         result.put("code", eqt.code());
         result.put("nbServices", eqt.nbServices());
-        if (measure != null) {
-            result.put("position", measure.getSimple("position"));
+        if (measures != null) {
+            for (var measure : measures.getAttributes().entrySet()) {
+                switch (measure.getValue()) {
+                    case AttributeSimpleValueDto simple -> result.put(measure.getKey(), simple.value);
+                    case AttributeMultiValueDto multi -> result.put(measure.getKey(), multiToString(multi));
+                    default -> throw new IllegalStateException("Unexpected value: " + measure.getValue());
+                }
+            }
         }
         return result;
+    }
+
+    private String multiToString(AttributeMultiValueDto multi) {
+        return multi.values.stream().map(Object::toString).collect(Collectors.joining(";"));
     }
 }
