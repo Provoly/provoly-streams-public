@@ -1,15 +1,18 @@
 package com.provoly.streams.equipment;
 
+import io.quarkus.kafka.client.serialization.JsonObjectSerde;
+import io.quarkus.kafka.client.serialization.ObjectMapperSerde;
+import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
-
-import io.quarkus.kafka.client.serialization.ObjectMapperSerde;
-
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.kstream.*;
+import org.apache.kafka.streams.kstream.Consumed;
+import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.kstream.Produced;
 
 @ApplicationScoped
 public class TopologyProducer {
@@ -25,20 +28,31 @@ public class TopologyProducer {
 
         var equipmentHypervisorSerde = new ObjectMapperSerde<>(EquipmentHypervisor.class);
         var itemDtoSerde = new ObjectMapperSerde<>(ItemDto.class);
+        var equipmentResultSerde = new JsonObjectSerde();//new ObjectMapperSerde<Map<String, Object>>(Map.class);
 
         KTable<String, EquipmentHypervisor> equipment = builder
                 .stream("equipment", Consumed.with(Serdes.String(), equipmentHypervisorSerde))
                 .toTable();
 
-        KStream<String, ItemDto> measures = builder
+        KTable<String, ItemDto> measures = builder
                 .stream("class-f746090e67_armoire-mesures", Consumed.with(Serdes.String(), itemDtoSerde))
-                .map((key, value) -> KeyValue.pair(value.getSimple("reference"), value)) // TODO : FIXME Only for test
-        ;
+                .map((key, value) -> KeyValue.pair((String) value.getSimple("reference"), value))
+                .toTable(Materialized.with(Serdes.String(), itemDtoSerde));
 
-        var fff = Joined.with(Serdes.String(), itemDtoSerde, equipmentHypervisorSerde);
-        measures.leftJoin(equipment, (measure, equip) -> " " + equip.code() + "/" + equip.nbServices() + " " + measure.getSimple("reference"), fff)
-                .to("equipment-enriched-measure", Produced.with(Serdes.String(), Serdes.String()));
+        equipment.leftJoin(measures, this::join)
+                .toStream()
+                .to("equipment-enriched-measure", Produced.with(Serdes.String(), equipmentResultSerde));
 
         return builder.build();
+    }
+
+    private JsonObject join(EquipmentHypervisor eqt, ItemDto measure) {
+        var result = new JsonObject();
+        result.put("code", eqt.code());
+        result.put("nbServices", eqt.nbServices());
+        if (measure != null) {
+            result.put("position", measure.getSimple("position"));
+        }
+        return result;
     }
 }
