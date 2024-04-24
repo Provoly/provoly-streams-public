@@ -1,12 +1,12 @@
 package com.provoly.streams.equipment;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 public class AttributeSimpleValueDto extends AttributeDto {
 

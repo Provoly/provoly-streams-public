@@ -1,11 +1,11 @@
 package com.provoly.streams.equipment;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 public class ItemDto {
 
