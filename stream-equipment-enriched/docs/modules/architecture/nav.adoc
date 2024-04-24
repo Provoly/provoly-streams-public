@@ -1,0 +1,3 @@
+* Architecture
+** xref:archi-global.adoc[Global architecture]
+** xref:high-level-domain.adoc[High level domain model]
