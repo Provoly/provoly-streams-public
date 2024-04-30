@@ -28,13 +28,13 @@ jobs:
       - name: Update values on chalons-dev
         uses: peter-evans/repository-dispatch@v3
         with:
-          token: ${{ secrets.SA_PERSONAL_ACCESS_TOKEN }}
+          token: ${{ secrets.GH_DISPATCH_TOKEN }}
           repository: provoly/provoly-chart-values
           event-type: update-chart-value
           client-payload: |
             {
               "filename": "chalons/chalons-dev/provoly/values.yaml",
-              "field_names": "provolyHypervisorBackendImagetag",
+              "field_names": "streamEquipmentEnrichedImagetag",
               "field_value": "dev-$CI_SHORT_COMMIT_SHA"
             }
         if: github.ref == 'refs/heads/main'
