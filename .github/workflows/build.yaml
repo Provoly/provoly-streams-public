@@ -83,18 +83,6 @@ jobs:
           username: ${{ secrets.REGISTRY_USER }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
-          cache: 'maven'
-
-      - name: Set up Maven
-        uses: stCarolas/setup-maven@v5
-        with:
-          maven-version: 3.9.1
-
       - name: Sets env vars for main branch
         run: |
           export CI_SHORT_COMMIT_SHA=$(echo ${GITHUB_SHA} | cut -c1-8) >> $GITHUB_ENV
@@ -107,12 +95,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
-          key: provoly-maven-${{ hashFiles('**/pom.xml') }}
+          key: provoly-maven-${{ hashFiles('${{ matrix.modules }}/pom.xml') }}
           restore-keys: |
             provoly-maven-
 
       - name: Build with Maven
         run: mvn ${{ env.MAVEN_CLI_OPTS }} verify ${{ env.MAVEN_PROFILE }}
+        working-directory: ${{ matrix.modules }}
         env:
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
           REGISTRY_SERVER: ${{ secrets.REGISTRY_SERVER }}
