@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Sets env vars for main branch
         run: |
-          export CI_SHORT_COMMIT_SHA=$(echo ${GITHUB_SHA} | cut -c1-8) >> $GITHUB_ENV
+          echo "CI_SHORT_COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_ENV
       - name: Update values on chalons-dev
         uses: peter-evans/repository-dispatch@v3
         with:
@@ -35,6 +35,6 @@ jobs:
             {
               "filename": "chalons/chalons-dev/provoly/values.yaml",
               "field_names": "streamEquipmentEnrichedImagetag",
-              "field_value": "dev-$CI_SHORT_COMMIT_SHA"
+              "field_value": "dev-${{ env.CI_SHORT_COMMIT_SHA }}"
             }
         if: github.ref == 'refs/heads/main'
