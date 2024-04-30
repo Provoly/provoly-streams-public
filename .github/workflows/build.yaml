@@ -27,31 +27,46 @@ env:
   JAVA_VERSION: 21
   MAVEN_OPTS: "-Dorg.slf4j.simpleLogger.showDateTime=true -Djansi.force=true"
   MAVEN_CLI_OPTS: "-Dstyle.color=always --batch-mode --errors --show-version -DinstallAtEnd=true -Dno-format -DdeployAtEnd=true"
+  IGNORED_FOLDERS: ". .github docs"
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
 
-
 jobs:
   prepare:
     runs-on: provoly-runner
     outputs:
-      modules: ${{ steps.changed_modules.outputs.changed }}
+      modules: "${{ steps.determine_changed_modules.outputs.changed_modules }}"
     steps:
       - uses: actions/checkout@v4
       - name: Run changed-files with dir_names
-        id: changed_modules
+        id: changed_folders
         uses: tj-actions/changed-files@v44
         with:
           dir_names: "true"
-      - name: Echo
-        run: echo ${{ steps.changed_modules.outputs.changed }}
+      - name: determine changed modules
+        id: determine_changed_modules
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed_folders.outputs.all_changed_and_modified_files }}
+        run: |
+          changed_modules="[]"
+          for file in ${ALL_CHANGED_FILES}; do
+            folder=$(echo stream-equipment-enriched/docs/structurizr | cut -d '/' -f 1)
+            if [[ $IGNORED_FOLDERS == *"$folder"* ]]; then
+              echo "It '$folder' should be ignored !!"
+            else
+              # echo "$folder is not on ignorelist and need to be processed"
+              changed_modules=$(echo -e "$changed_modules\n[\"$folder\"]" | jq -s 'add' | jq '. | unique' -c )
+            fi
+          done
+          echo "FINAL : $changed_modules"
+          echo "changed_modules=$changed_modules" >> "$GITHUB_OUTPUT"
 
   build:
     strategy:
       matrix:
-        modules: ${{needs.prepare.outputs.modules}}
+        modules: ${{fromJson(needs.prepare.outputs.modules)}}
     name: Build
     runs-on: provoly-runner
     needs:
@@ -61,51 +76,44 @@ jobs:
       - name: Echo
         run: echo ${{ matrix.modules }}
 
-#
-#
-#    name: Build
-#    runs-on: provoly-runner
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - name: Login to Harbor
-#        uses: docker/login-action@v3
-#        with:
-#          registry: dh2wltsh.gra7.container-registry.ovh.net
-#          username: ${{ secrets.CI_REGISTRY_USER }}
-#          password: ${{ secrets.CI_REGISTRY_PASSWORD }}
-#
-#      - name: Set up JDK
-#        uses: actions/setup-java@v4
-#        with:
-#          distribution: temurin
-#          java-version: ${{ env.JAVA_VERSION }}
-#          cache: 'maven'
-#
-#      - name: Set up Maven
-#        uses: stCarolas/setup-maven@v5
-#        with:
-#          maven-version: 3.9.1
-#
-#      - name: Sets env vars for main branch
-#        run: |
-#          export CI_SHORT_COMMIT_SHA=$(echo ${GITHUB_SHA} | cut -c1-8) >> $GITHUB_ENV
-#          export "DOCKER_IMAGE_ADDITIONAL_TAGS=dev-$CI_SHORT_COMMIT_SHA,latest" >> $GITHUB_ENV
-#          echo "MAVEN_CLI_OPTS=-Dstyle.color=always --batch-mode --errors --show-version -DinstallAtEnd=true -DdeployAtEnd=true -Dquarkus.container-image.additional-tags=$DOCKER_IMAGE_ADDITIONAL_TAGS -Dquarkus.container-image.labels.\"git-ref\"=$CI_SHORT_COMMIT_SHA -DskipTests" >> $GITHUB_ENV
-#          echo "MAVEN_PROFILE=-Pdocker-image" >> $GITHUB_ENV
-#        if: github.ref == 'refs/heads/main'
-#
-#      - name: Cache local Maven repository
-#        uses: actions/cache@v4
-#        with:
-#          path: ~/.m2/repository
-#          key: provoly-maven-${{ hashFiles('**/pom.xml') }}
-#          restore-keys: |
-#            provoly-maven-
-#
-#      - name: Build with Maven
-#        run: mvn ${{ env.MAVEN_CLI_OPTS }} verify ${{ env.MAVEN_PROFILE }}
-#        env:
-#          CI_REGISTRY_PASSWORD: ${{ secrets.CI_REGISTRY_PASSWORD }}
-#          CI_REGISTRY_SERVER: ${{ secrets.CI_REGISTRY_SERVER }}
-#          CI_REGISTRY_USER: ${{ secrets.CI_REGISTRY_USER }}
+      - name: Login to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: dh2wltsh.gra7.container-registry.ovh.net
+          username: ${{ secrets.REGISTRY_USER }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'maven'
+
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v5
+        with:
+          maven-version: 3.9.1
+
+      - name: Sets env vars for main branch
+        run: |
+          export CI_SHORT_COMMIT_SHA=$(echo ${GITHUB_SHA} | cut -c1-8) >> $GITHUB_ENV
+          export "DOCKER_IMAGE_ADDITIONAL_TAGS=dev-$CI_SHORT_COMMIT_SHA,latest" >> $GITHUB_ENV
+          echo "MAVEN_CLI_OPTS=-Dstyle.color=always --batch-mode --errors --show-version -DinstallAtEnd=true -DdeployAtEnd=true -Dquarkus.container-image.additional-tags=$DOCKER_IMAGE_ADDITIONAL_TAGS -Dquarkus.container-image.labels.\"git-ref\"=$CI_SHORT_COMMIT_SHA -DskipTests" >> $GITHUB_ENV
+          echo "MAVEN_PROFILE=-Pdocker-image" >> $GITHUB_ENV
+        if: github.ref == 'refs/heads/main'
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: provoly-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            provoly-maven-
+
+      - name: Build with Maven
+        run: mvn ${{ env.MAVEN_CLI_OPTS }} verify ${{ env.MAVEN_PROFILE }}
+        env:
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+          REGISTRY_SERVER: ${{ secrets.REGISTRY_SERVER }}
+          REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
