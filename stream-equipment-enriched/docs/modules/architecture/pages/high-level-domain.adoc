@@ -1,0 +1,10 @@
+= High level hypervisor model
+
+The following diagram contains the hypervisor domain concepts.
+Its only purpose is to display the concepts with their relations.
+
+[plantuml]
+----
+include::partial$diagrams/mcd.puml[]
+----
+

@@ -1,0 +1,89 @@
+= A guide for new contributors
+
+== Install Environment
+
+The required languages and tools to work on the project are specified in the `.tools_version` file in the root folder.
+
+Nonetheless, *docker* or *podman* must be available in your environment
+
+* Docker v.*20*
+
+`asdf` related documentation can be found xref:provoly-doc:processus:outils.adoc[here]
+
+== IntelliJ Setup
+
+Open the Preferences window (or Settings depending on your edition), navigate to Plugins and install the Adapter for Eclipse Code Formatter from the Marketplace.
+
+Restart your IDE, open the Preferences (or Settings) window again and navigate to Adapter for Eclipse Code Formatter section on the left pane.
+
+Select Use Eclipse's Code Formatter, then change the Eclipse workspace/project folder or config file to point to the eclipse-format.xml file in the independent-projects/ide-config/src/main/resources directory. Make sure the Optimize Imports box is ticked. Then, select Import Order from file and make it point to the eclipse.importorder file in the ide-config/src/main/resources directory.
+
+Next, disable wildcard imports: navigate to `Editor` -> `Code Style` -> `Java` -> `Imports` and set `Class count to use import with '\*'` to 5. Do the same with `Names count to use static import with '*'`.
+
+=== Process
+
+Processes are described in the xref:provoly-doc:processus:gestion_ticket.adoc[processus section].
+
+
+=== AsciiDoc
+
+Our technical documentation uses the plain text markup language *AsciiDoc*.
+
+In order to visualize your changes in the documentation, you will require the `AsciiDoc` plugin from the marketplace.
+
+After that, you have to enable *soft wraps* for the asciiDoc files : `general` -> `editor` -> `softwrap` -> *.adoc
+
+
+=== SonarLint
+Extension which finds and fixes coding issues in real-time.
+
+=== Run the formatter manually
+
+The following command must be run in the root folder.
+
+[source,bash]
+----
+mvn compile
+----
+
+When submitting a merge request the CI build will fail if the code isn't properly formatted, so it is recommended that you always run a full Maven build before submitting a pull request.
+
+== Architecture documentation
+
+The architecture documentation uses https://docs.structurizr.com/[Structurizr].
+
+An extended documentation can be found https://docs.structurizr.com/dsl/cookbook/[here].
+
+Simply run :
+
+[source,bash]
+----
+docker run --rm -v ./docs/structurizr:/usr/local/structurizr -p 9191:8080 structurizr/lite:2024.01.02
+----
+
+As of now, exporting as svg is done as described https://docs.structurizr.com/ui/diagrams/export[here]
+
+
+== Running locally
+
+The hypervisor leverages the keycloak devservice, with a custom realm settings for its oidc provider.
+
+Access http://localhost:9000/admin/master/console/[the admin console] with the user `admin:admin`
+
+The application's realm is *_hypervisor_*, it has two user:
+
+* admin:mysecretpassword
+* reader:letmein
+
+As of now, no roles are specified, but this is subject to change in the future.
+
+
+== Check list
+
+. If your feature modifies the API. You have to mirror the impacts the icon:folder[]`src/main/resources/META-INF/resources/openapi.yaml` file.
+
+. If your feature impacts the database model, you changes must be placed under the icon:folder[] `src/main/resources/db/migration` folder.
+You also have to mirror the impacts on the diagram (`docs/modules/architecture/partials/diagrams/mcd.puml`). We aim to keep it simple (stupid), just the concepts relations.
+
+. If your feature adds or removes user roles, you have to mirror those changes in the realm *json* file the icon:folder[]`src/main/resources/META-INF/resources/openapi.yaml` file.
+

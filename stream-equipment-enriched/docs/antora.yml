@@ -1,0 +1,9 @@
+name: stream-equipement-enriched
+title: Provoly stream equipment enriched
+version: true
+nav:
+  - modules/architecture/nav.adoc
+  - modules/ROOT/nav.adoc
+asciidoc:
+  attributes:
+    kroki-plantuml-include-paths: './modules/architecture/partials/diagrams'
