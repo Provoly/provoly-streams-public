@@ -106,3 +106,4 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
           REGISTRY_URL: ${{ vars.REGISTRY_URL }}
           REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          REGISTRY_PROJECT_NAME: provoly
