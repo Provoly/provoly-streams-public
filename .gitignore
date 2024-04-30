@@ -40,7 +40,7 @@ nb-configuration.xml
 .env
 
 # Plugin directory
-/.quarkus/cli/plugins/
+stream-equipment-enriched/.quarkus/cli/plugins/
 
 #Structurizr
 docs/structurizr/.structurizr

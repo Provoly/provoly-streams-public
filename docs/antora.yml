@@ -1,0 +1,5 @@
+name: stream-equipement-enriched
+title: Provoly stream equipment enriched
+version: true
+nav:
+  - modules/ROOT/nav.adoc

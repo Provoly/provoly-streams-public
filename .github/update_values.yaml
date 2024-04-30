@@ -1,0 +1,40 @@
+name: "Update ArgoCD values."
+
+on:
+  workflow_run:
+    paths-ignore:
+      - '.gitignore'
+      - 'LICENSE'
+      - '*.adoc'
+      - 'docs'
+      - 'ide-config'
+      - '*.txt'
+      - '.github/**'
+    workflows: [Build]
+    branches:
+      - main
+    types:
+      - completed
+
+jobs:
+  build:
+    name: Build
+    runs-on: provoly-runner
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sets env vars for main branch
+        run: |
+          export CI_SHORT_COMMIT_SHA=$(echo ${GITHUB_SHA} | cut -c1-8) >> $GITHUB_ENV
+      - name: Update values on chalons-dev
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.SA_PERSONAL_ACCESS_TOKEN }}
+          repository: provoly/provoly-chart-values
+          event-type: update-chart-value
+          client-payload: |
+            {
+              "filename": "chalons/chalons-dev/provoly/values.yaml",
+              "field_names": "provolyHypervisorBackendImagetag",
+              "field_value": "dev-$CI_SHORT_COMMIT_SHA"
+            }
+        if: github.ref == 'refs/heads/main'

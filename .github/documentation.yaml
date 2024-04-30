@@ -1,0 +1,17 @@
+name: Trigger documentation rebuild
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'docs/**'
+jobs:
+  dispatch-event:
+    name: Dispatch event
+    runs-on: provoly-runner
+    steps:
+      - uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GH_DISPATCH_TOKEN }}
+          repository: provoly/provoly-doc
+          event-type: build-documentation-request
