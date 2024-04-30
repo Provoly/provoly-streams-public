@@ -104,5 +104,5 @@ jobs:
         working-directory: ${{ matrix.modules }}
         env:
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-          REGISTRY_SERVER: ${{ secrets.REGISTRY_SERVER }}
+          REGISTRY_URL: ${{ vars.REGISTRY_URL }}
           REGISTRY_USER: ${{ secrets.REGISTRY_USER }}

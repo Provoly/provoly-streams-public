@@ -239,7 +239,7 @@
         </quarkus.jib.base-jvm-image>
         <quarkus.jib.environment-variables></quarkus.jib.environment-variables>
         <!--suppress UnresolvedMavenProperty -->
-        <quarkus.container-image.registry>${env.REGISTRY_SERVER}</quarkus.container-image.registry>
+        <quarkus.container-image.registry>${env.REGISTRY_URL}</quarkus.container-image.registry>
         <!--suppress UnresolvedMavenProperty -->
         <quarkus.container-image.username>${env.REGISTRY_USER}</quarkus.container-image.username>
         <!--suppress UnresolvedMavenProperty -->
