@@ -34,3 +34,4 @@ quarkus:
     kubernetes-config:
       enabled: true
       config-maps: stream-equipment-enriched
+
