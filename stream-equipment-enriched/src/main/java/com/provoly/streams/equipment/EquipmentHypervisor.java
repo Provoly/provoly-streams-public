@@ -1,5 +1,11 @@
 package com.provoly.streams.equipment;
 
-public record EquipmentHypervisor(String code, int nbServices) {
+import java.util.List;
+
+public record EquipmentHypervisor(String code,
+        String family,
+        String domain,
+        String entity,
+        List<EventHypervisor> events) {
 
 }

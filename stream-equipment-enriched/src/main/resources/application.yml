@@ -4,7 +4,6 @@ quarkus:
     topics: equipment
 
 
-
 "%dev":
 
   quarkus:
@@ -28,6 +27,15 @@ quarkus:
       access-log:
         enabled: true
       port: 8089
+
+    kafka:
+      devservices:
+        enabled: true
+        port: 9093
+
+  provoly:
+    enriched_dataset_topic: dataset-7277a48c94_equipement-enrichi-mesure
+    dataset_version_id: 72729e27-4ae4-4113-901b-12eb695a3389
 
 "%prod":
   quarkus:
