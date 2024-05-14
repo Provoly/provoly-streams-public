@@ -73,6 +73,8 @@ public class TopologyProducer {
                     public void process(Record<String, JsonObject> record) {
                         record.headers().add(new RecordHeader("provoly-dataset-version-id",
                                 datasetVersionId.getBytes(StandardCharsets.UTF_8)));
+                        record.headers().add(new RecordHeader("provoly-item-id",
+                                record.key().getBytes(StandardCharsets.UTF_8)));
                         context.forward(record);
                     }
                 })
