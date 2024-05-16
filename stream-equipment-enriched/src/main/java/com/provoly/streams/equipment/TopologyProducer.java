@@ -84,11 +84,23 @@ public class TopologyProducer {
 
     private JsonObject join(EquipmentHypervisor eqt, ItemDto measures) {
         var result = new JsonObject();
-        result.put("code", eqt.code());
-        result.put("domain", eqt.domain());
-        result.put("family", eqt.family());
-        result.put("category", eqt.events().stream().map(EventHypervisor::category).collect(Collectors.joining(",")));
-        result.put("criticality", eqt.events().stream().map(EventHypervisor::criticality).collect(Collectors.joining(",")));
+
+        appendEquipmentPropertyToResult(eqt, "code", result);
+        appendEquipmentPropertyToResult(eqt, "domain", result);
+        appendEquipmentPropertyToResult(eqt, "entity", result);
+        appendEquipmentPropertyToResult(eqt, "family", result);
+        appendEquipmentPropertyToResult(eqt, "position", result);
+        appendEquipmentPropertyToResult(eqt, "managed", result);
+
+        var categories = eqt.events().stream().map(EventHypervisor::category).collect(Collectors.joining(","));
+        if (!categories.isEmpty()) {
+            result.put("category", categories);
+        }
+
+        var criticalities = eqt.events().stream().map(EventHypervisor::criticality).collect(Collectors.joining(","));
+        if (!criticalities.isEmpty()) {
+            result.put("criticality", criticalities);
+        }
 
         if (measures != null) {
             for (var measure : measures.getAttributes().entrySet()) {
@@ -100,6 +112,16 @@ public class TopologyProducer {
             }
         }
         return result;
+    }
+
+    private void appendEquipmentPropertyToResult(EquipmentHypervisor eqt, String property, JsonObject result) {
+        if (eqt.attributes().get(property) != null) {
+            if (property.equals("family")) { // TODO: mise en conformité des attributs
+                result.put("famille", eqt.attributes().get(property));
+                return;
+            }
+            result.put(property, eqt.attributes().get(property));
+        }
     }
 
     private String multiToString(AttributeMultiValueDto multi) {
