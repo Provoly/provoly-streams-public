@@ -91,6 +91,7 @@ public class TopologyProducer {
         appendEquipmentPropertyToResult(eqt, "family", result);
         appendEquipmentPropertyToResult(eqt, "position", result);
         appendEquipmentPropertyToResult(eqt, "managed", result);
+        appendEquipmentPropertyToResult(eqt, "nbServicesAskedInProgress", result);
 
         var categories = eqt.events().stream().map(EventHypervisor::category).collect(Collectors.joining(","));
         if (!categories.isEmpty()) {
@@ -116,10 +117,6 @@ public class TopologyProducer {
 
     private void appendEquipmentPropertyToResult(EquipmentHypervisor eqt, String property, JsonObject result) {
         if (eqt.attributes().get(property) != null) {
-            if (property.equals("family")) { // TODO: mise en conformité des attributs
-                result.put("famille", eqt.attributes().get(property));
-                return;
-            }
             result.put(property, eqt.attributes().get(property));
         }
     }
