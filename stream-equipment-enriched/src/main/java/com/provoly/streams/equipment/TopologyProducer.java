@@ -90,6 +90,7 @@ public class TopologyProducer {
         appendEquipmentPropertyToResult(eqt, "entity", result);
         appendEquipmentPropertyToResult(eqt, "family", result);
         appendEquipmentPropertyToResult(eqt, "position", result);
+        appendEquipmentPropertyToResult(eqt, "place", result);
         appendEquipmentPropertyToResult(eqt, "managed", result);
         appendEquipmentPropertyToResult(eqt, "nbServicesAskedInProgress", result);
 
