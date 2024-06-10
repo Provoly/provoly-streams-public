@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 
 public record EquipmentHypervisor(Map<String, Object> attributes,
-        List<EventHypervisor> events) {
+        List<EventHypervisor> events, List<ServiceHypervisor> services) {
 
     public EquipmentHypervisor {
         if (attributes == null) {
