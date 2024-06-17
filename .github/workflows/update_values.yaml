@@ -16,15 +16,47 @@ on:
     types:
       - completed
 
+env:
+  IMAGES_MAP: |-
+    {
+    "stream-consumption-per-day": "streamConsumptionPerDayImagetag",
+    "stream-equipment-enriched": "streamEquipmentEnrichedImagetag"
+    }
+
 jobs:
+  module-matrix:
+    name: Detect changed modules
+    runs-on: provoly-runner
+    outputs:
+      modules: ${{ steps.modules.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+      - name: Install requests lib
+        run: sudo apt install python3-requests -y
+      - name: Get modules
+        id: modules
+        env:
+          NEO_LOG_LEVEL: DEBUG
+        uses: hellofresh/action-changed-files@v3
+        with:
+          pattern: (?P<module>[^/\.]+)\/
+
   build:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: Build
     runs-on: provoly-runner
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
       - name: Sets env vars for main branch
         run: |
           echo "CI_SHORT_COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_ENV
+      - name: test for getting image name
+        run: |
+          echo IMAGE_NAME=$(jq -r '."${{ matrix.module }}"' <<< $IMAGES_MAP ) >> $GITHUB_ENV
       - name: Update values on chalons-dev
         uses: peter-evans/repository-dispatch@v3
         with:
@@ -34,7 +66,7 @@ jobs:
           client-payload: |
             {
               "filename": "chalons/chalons-dev/provoly/values.yaml",
-              "field_names": "streamEquipmentEnrichedImagetag",
+              "field_names": ${{ env.IMAGE_NAME }}
               "field_value": "dev-${{ env.CI_SHORT_COMMIT_SHA }}"
             }
         if: github.ref == 'refs/heads/main'

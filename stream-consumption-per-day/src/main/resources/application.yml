@@ -1,0 +1,42 @@
+"%dev":
+
+  quarkus:
+    log:
+      category:
+        "org.hibernate":
+          level: INFO
+        "io.quarkus.oidc":
+          level: INFO
+        "com.provoly":
+          level: INFO
+        "org.jboss.resteasy.reactive.server":
+          level: DEBUG
+        "WebApplicationException":
+          level: DEBUG
+        min-level: TRACE
+      #console:
+      #  format: "%d{HH:mm:ss} %-5p traceId=%X{traceId} parentId=%X{parentId} spanId=%X{spanId} [%c{2.}] (%t) %s%e%n"
+
+    http:
+      access-log:
+        enabled: true
+      port: 8089
+
+    kafka:
+      devservices:
+        enabled: true
+        port: 9093
+
+    kafka-streams:
+      topics: ignored #We start yourself our streams, configuration is mandatory but not used
+
+  provoly:
+    consumption_dataset_topic: dataset-7277a48c94_consommation-journaliere-armoire
+    dataset_version_id: 72729e27-4ae4-4113-901b-12eb695a3389
+
+"%prod":
+  quarkus:
+    kubernetes-config:
+      enabled: true
+      config-maps: stream-consumption-per-day
+

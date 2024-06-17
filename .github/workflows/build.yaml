@@ -5,23 +5,7 @@ on:
   push:
     branches:
       - "main"
-    paths-ignore:
-      - '.gitignore'
-      - 'LICENSE'
-      - '*.adoc'
-      - '*.txt'
-      - 'docs'
-      - 'ide-config'
-      - '.github/**'
   pull_request:
-    paths-ignore:
-      - '.gitignore'
-      - 'LICENSE'
-      - '*.adoc'
-      - 'docs'
-      - 'ide-config'
-      - '*.txt'
-      - '.github/**'
 
 env:
   JAVA_VERSION: 21
@@ -34,47 +18,48 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  prepare:
+  pre_job:
+    name: Preparing path-ignores
     runs-on: provoly-runner
     outputs:
-      modules: "${{ steps.determine_changed_modules.outputs.changed_modules }}"
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Run changed-files with dir_names
-        id: changed_folders
-        uses: tj-actions/changed-files@v44
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v5
         with:
-          dir_names: "true"
-      - name: determine changed modules
-        id: determine_changed_modules
+          paths_ignore: '["**/.gitignore","LICENSE","**/*.adoc","**/*.txt","docs/**", "**/ide-config", ".github/**", "pom.xml", ".tool-versions"]'
+          do_not_skip: '["workflow_dispatch"]'
+          skip_after_successful_duplicate: false
+
+  module-matrix:
+    name: Detect changed modules
+    runs-on: provoly-runner
+    outputs:
+      modules: ${{ steps.modules.outputs.matrix }}
+    steps:
+      - name: Install requests lib
+        run: sudo apt install python3-requests -y
+      - name: Get modules
+        id: modules
         env:
-          ALL_CHANGED_FILES: ${{ steps.changed_folders.outputs.all_changed_and_modified_files }}
-        run: |
-          changed_modules="[]"
-          for file in ${ALL_CHANGED_FILES}; do
-            folder=$(echo stream-equipment-enriched/docs/structurizr | cut -d '/' -f 1)
-            if [[ $IGNORED_FOLDERS == *"$folder"* ]]; then
-              echo "It '$folder' should be ignored !!"
-            else
-              # echo "$folder is not on ignorelist and need to be processed"
-              changed_modules=$(echo -e "$changed_modules\n[\"$folder\"]" | jq -s 'add' | jq '. | unique' -c )
-            fi
-          done
-          echo "FINAL : $changed_modules"
-          echo "changed_modules=$changed_modules" >> "$GITHUB_OUTPUT"
+          NEO_LOG_LEVEL: DEBUG
+        uses: hellofresh/action-changed-files@v3
+        with:
+          pattern: (?P<module>(?!docs)[^/\.]+)/
 
   build:
     strategy:
-      matrix:
-        modules: ${{fromJson(needs.prepare.outputs.modules)}}
-    name: Build
+      matrix: ${{ fromJson(needs.module-matrix.outputs.modules) }}
+    if: ${{  fromJson(needs.module-matrix.outputs.modules).include[0] }}  # if no module changes do nothing
+    name: "Build ${{ matrix.module }}"
     runs-on: provoly-runner
     needs:
-      - prepare
+      - module-matrix
     steps:
       - uses: actions/checkout@v4
+
       - name: Echo
-        run: echo ${{ matrix.modules }}
+        run: echo ${{ matrix.module }}
 
       - name: Login to Harbor
         uses: docker/login-action@v3
@@ -95,13 +80,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
-          key: provoly-maven-${{ hashFiles('${{ matrix.modules }}/pom.xml') }}
+          key: provoly-maven-${{ hashFiles('${{ matrix.module }}/pom.xml') }}
           restore-keys: |
             provoly-maven-
 
       - name: Build with Maven
-        run: mvn ${{ env.MAVEN_CLI_OPTS }} verify ${{ env.MAVEN_PROFILE }}
-        working-directory: ${{ matrix.modules }}
+        run: mvn ${{ env.MAVEN_CLI_OPTS }} verify -pl ${{ matrix.module }} ${{ env.MAVEN_PROFILE }}
         env:
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
           REGISTRY_URL: ${{ vars.REGISTRY_URL }}

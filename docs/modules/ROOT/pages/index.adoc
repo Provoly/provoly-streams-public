@@ -20,10 +20,6 @@ Select Use Eclipse's Code Formatter, then change the Eclipse workspace/project f
 
 Next, disable wildcard imports: navigate to `Editor` -> `Code Style` -> `Java` -> `Imports` and set `Class count to use import with '\*'` to 5. Do the same with `Names count to use static import with '*'`.
 
-=== Process
-
-Processes are described in the xref:provoly-doc:processus:gestion_ticket.adoc[processus section].
-
 
 === AsciiDoc
 
@@ -63,27 +59,9 @@ docker run --rm -v ./docs/structurizr:/usr/local/structurizr -p 9191:8080 struct
 
 As of now, exporting as svg is done as described https://docs.structurizr.com/ui/diagrams/export[here]
 
-
-== Running locally
-
-The hypervisor leverages the keycloak devservice, with a custom realm settings for its oidc provider.
-
-Access http://localhost:9000/admin/master/console/[the admin console] with the user `admin:admin`
-
-The application's realm is *_hypervisor_*, it has two user:
-
-* admin:mysecretpassword
-* reader:letmein
-
 As of now, no roles are specified, but this is subject to change in the future.
 
+== Deploy new stream module
 
-== Check list
-
-. If your feature modifies the API. You have to mirror the impacts the icon:folder[]`src/main/resources/META-INF/resources/openapi.yaml` file.
-
-. If your feature impacts the database model, you changes must be placed under the icon:folder[] `src/main/resources/db/migration` folder.
-You also have to mirror the impacts on the diagram (`docs/modules/architecture/partials/diagrams/mcd.puml`). We aim to keep it simple (stupid), just the concepts relations.
-
-. If your feature adds or removes user roles, you have to mirror those changes in the realm *json* file the icon:folder[]`src/main/resources/META-INF/resources/openapi.yaml` file.
-
+* update the parent `pom.xml` by adding the new module name
+* update `IMAGES_MAP` variable in `.github/update_values.yaml` by adding the module name and its image name.
