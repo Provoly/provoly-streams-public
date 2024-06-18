@@ -1,5 +1,7 @@
-"%dev":
+kafka-streams:
+  topics: ignored #We start yourself our streams, configuration is mandatory but not used
 
+"%dev":
   quarkus:
     log:
       category:
@@ -26,9 +28,6 @@
       devservices:
         enabled: true
         port: 9093
-
-    kafka-streams:
-      topics: ignored #We start yourself our streams, configuration is mandatory but not used
 
   provoly:
     consumption_dataset_topic: dataset-7277a48c94_consommation-journaliere-armoire
