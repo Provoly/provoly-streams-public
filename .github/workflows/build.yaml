@@ -104,6 +104,6 @@ jobs:
           client-payload: |
             {
               "filename": "chalons/chalons-dev/provoly/values.yaml",
-              "field_names": ${{ matrix.module }}
+              "field_names": "${{ matrix.module }}",
               "field_value": "dev-${{ env.CI_SHORT_COMMIT_SHA }}"
             }
