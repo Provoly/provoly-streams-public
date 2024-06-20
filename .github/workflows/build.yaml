@@ -94,9 +94,16 @@ jobs:
           REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
           REGISTRY_PROJECT_NAME: provoly
 
-      - name: Trigger update values
-        uses: ./.github/workflows/update_values.yaml
+      - name: Update values on chalons-dev
+        if: github.ref == 'refs/heads/main'
+        uses: peter-evans/repository-dispatch@v3
         with:
-          fieldName: ${{ matrix.module }}
-          fieldValue: ${{ env.CI_SHORT_COMMIT_SHA }}
-
+          token: ${{ secrets.GH_DISPATCH_TOKEN }}
+          repository: provoly/provoly-chart-values
+          event-type: update-chart-value
+          client-payload: |
+            {
+              "filename": "chalons/chalons-dev/provoly/values.yaml",
+              "field_names": ${{ matrix.module }}
+              "field_value": "dev-${{ env.CI_SHORT_COMMIT_SHA }}"
+            }
