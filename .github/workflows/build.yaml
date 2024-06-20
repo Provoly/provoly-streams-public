@@ -71,6 +71,7 @@ jobs:
       - name: Sets env vars for main branch
         run: |
           export CI_SHORT_COMMIT_SHA=$(echo ${GITHUB_SHA} | cut -c1-8) >> $GITHUB_ENV
+          echo CI_SHORT_COMMIT_SHA=$(echo ${GITHUB_SHA} | cut -c1-8) >> $GITHUB_ENV
           export "DOCKER_IMAGE_ADDITIONAL_TAGS=dev-$CI_SHORT_COMMIT_SHA,latest" >> $GITHUB_ENV
           echo "MAVEN_CLI_OPTS=-Dstyle.color=always --batch-mode --errors --show-version -DinstallAtEnd=true -DdeployAtEnd=true -Dquarkus.container-image.additional-tags=$DOCKER_IMAGE_ADDITIONAL_TAGS -Dquarkus.container-image.labels.\"git-ref\"=$CI_SHORT_COMMIT_SHA -DskipTests" >> $GITHUB_ENV
           echo "MAVEN_PROFILE=-Pdocker-image" >> $GITHUB_ENV
@@ -91,3 +92,10 @@ jobs:
           REGISTRY_URL: ${{ vars.REGISTRY_URL }}
           REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
           REGISTRY_PROJECT_NAME: provoly
+
+      - name: Trigger update values
+        uses: ./.github/workflows/update_values.yaml
+        with:
+          fieldName: ${{ matrix.module }}
+          fieldValue: ${{ env.CI_SHORT_COMMIT_SHA }}
+
