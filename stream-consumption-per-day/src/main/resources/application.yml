@@ -1,6 +1,6 @@
 quarkus:
   kafka-streams:
-    topics: ignored #We start yourself our streams, configuration is mandatory but not used
+    topics: equipment
 
 "%dev":
   quarkus:
