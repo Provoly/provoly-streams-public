@@ -41,5 +41,5 @@ quarkus:
   quarkus:
     kubernetes-config:
       enabled: true
-      config-maps: stream-equipment-enriched
+      config-maps: stream-camera-comptage
 
