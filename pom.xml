@@ -12,6 +12,7 @@
     <modules>
         <module>stream-consumption-per-day</module>
         <module>stream-equipment-enriched</module>
+        <module>stream-camera-comptage</module>
     </modules>
 
 </project>

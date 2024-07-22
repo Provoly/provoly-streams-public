@@ -1,0 +1,45 @@
+
+quarkus:
+  kafka-streams:
+    topics: equipment
+
+
+"%dev":
+
+  quarkus:
+    log:
+      category:
+        "org.hibernate":
+          level: INFO
+        "io.quarkus.oidc":
+          level: INFO
+        "com.provoly":
+          level: INFO
+        "org.jboss.resteasy.reactive.server":
+          level: DEBUG
+        "WebApplicationException":
+          level: DEBUG
+        min-level: TRACE
+      #console:
+      #  format: "%d{HH:mm:ss} %-5p traceId=%X{traceId} parentId=%X{parentId} spanId=%X{spanId} [%c{2.}] (%t) %s%e%n"
+
+    http:
+      access-log:
+        enabled: true
+      port: 8089
+
+    kafka:
+      devservices:
+        enabled: true
+        port: 9093
+
+  provoly:
+    enriched_dataset_topic: dataset-e433bde4f5_comptage-enrichi-camera
+    dataset_version_id: 9574b2f3-33f9-44b2-b349-f1e489b60704
+
+"%prod":
+  quarkus:
+    kubernetes-config:
+      enabled: true
+      config-maps: stream-equipment-enriched
+
