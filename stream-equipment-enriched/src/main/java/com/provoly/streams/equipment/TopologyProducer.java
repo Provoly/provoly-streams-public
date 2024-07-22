@@ -52,7 +52,7 @@ public class TopologyProducer {
                 .stream(equipmentTopic, Consumed.with(Serdes.String(), equipmentHypervisorSerde))
                 .toTable();
 
-        Pattern measuresTopicName = Pattern.compile("class-([a-f0-9]{10})_.*-mesures");
+        Pattern measuresTopicName = Pattern.compile("^(?!.*multi-mode).*class-([a-f0-9]{10})_.*-mesures");
 
         KTable<String, ItemDto> measures = builder
                 .stream(measuresTopicName, Consumed.with(Serdes.String(), itemDtoSerde))
