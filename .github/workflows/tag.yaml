@@ -1,0 +1,67 @@
+name: Tag
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - '*'
+
+env:
+  PROJECT_LIST: "stream-camera-comptage,stream-consumption-per-day,stream-equipment-enriched"
+  MAVEN_CLI_OPTS: "-Dstyle.color=always --batch-mode --errors --show-version -DinstallAtEnd=true -DdeployAtEnd=true"
+  JAVA_VERSION: 21
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Tag
+    runs-on: provoly-runner
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+
+      #PREPARE RUNNER
+      - name: Login to Harbor
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
+        with:
+          registry: ${{ vars.REGISTRY_URL }}
+          username: ${{ secrets.REGISTRY_USER }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Set up JDK
+        uses: actions/setup-java@b36c23c0d998641eff861008f374ee103c25ac73 # v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'maven'
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@d6af6abeda15e98926a57b5aa970a96bb37f97d1 # v5
+        with:
+          maven-version: 3.9.1
+      - name: Cache local Maven repository
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4
+        id: cache-maven
+        with:
+          path: ~/.m2/repository
+          key: provoly-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            provoly-maven-
+
+      - name: Tag
+        id: push-tag
+        run: mvn ${{ env.MAVEN_CLI_OPTS }} -pl ${{ env.PROJECT_LIST }} -Dquarkus.container-image.tag=${{ github.ref_name }} -Dquarkus.container-image.labels.\"git-ref\"=${{ github.sha }} -DskipTests verify -Pdocker-image
+        env:
+          CI_REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+          CI_REGISTRY_SERVER: ${{ vars.REGISTRY_URL }}
+          CI_REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          CI_REGISTRY_PROJECT_NAME: provoly
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "# Steps status " >> $GITHUB_STEP_SUMMARY
+          echo "| Step | State |" >> $GITHUB_STEP_SUMMARY
+          echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pushing tag to repository | ${{ steps.push-tag.outcome }} |" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,27 @@
+changelog:
+  categories:
+    - title: 🛠️ Fixes
+      labels:
+        - bug
+        - fix
+    - title: 🚀 Features
+      labels:
+        - enhancement
+        - feature
+    - title: 💣 Breaking changes
+      labels:
+        - "breaking change"
+    - title: 📦 Dependencies upgrades
+      labels:
+        - dependencies
+    - title: 🦄 Others
+      labels:
+        - "*"
+      exclude:
+        labels:
+          - bug
+          - fix
+          - enhancement
+          - feature
+          - "breaking change"
+          - dependencies
