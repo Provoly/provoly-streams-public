@@ -53,10 +53,10 @@ jobs:
         id: push-tag
         run: mvn ${{ env.MAVEN_CLI_OPTS }} -pl ${{ env.PROJECT_LIST }} -Dquarkus.container-image.tag=${{ github.ref_name }} -Dquarkus.container-image.labels.\"git-ref\"=${{ github.sha }} -DskipTests verify -Pdocker-image
         env:
-          CI_REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-          CI_REGISTRY_SERVER: ${{ vars.REGISTRY_URL }}
-          CI_REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
-          CI_REGISTRY_PROJECT_NAME: provoly
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+          REGISTRY_URL: ${{ vars.REGISTRY_URL }}
+          REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          REGISTRY_PROJECT_NAME: provoly
 
       - name: Summary
         if: always()
