@@ -95,19 +95,13 @@ public class TopologyProducer {
         appendEquipmentPropertyToResult(eqt, "nbServicesAskedInProgress", result);
 
         var categories = eqt.events().stream().map(EventHypervisor::category).collect(Collectors.joining(","));
-        if (!categories.isEmpty()) {
-            result.put("category", categories);
-        }
+        result.put("category", categories);
 
         var criticalities = eqt.events().stream().map(EventHypervisor::criticality).collect(Collectors.joining(","));
-        if (!criticalities.isEmpty()) {
-            result.put("criticality", criticalities);
-        }
+        result.put("criticality", criticalities);
 
         var serviceCategories = eqt.services().stream().map(ServiceHypervisor::category).collect(Collectors.joining(","));
-        if (!serviceCategories.isEmpty()) {
-            result.put("serviceCategory", serviceCategories);
-        }
+        result.put("serviceCategory", serviceCategories);
 
         if (measures != null) {
             for (var measure : measures.getAttributes().entrySet()) {
