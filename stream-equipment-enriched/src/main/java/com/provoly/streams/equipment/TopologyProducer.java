@@ -92,6 +92,7 @@ public class TopologyProducer {
         appendEquipmentPropertyToResult(eqt, "position", result);
         appendEquipmentPropertyToResult(eqt, "place", result);
         appendEquipmentPropertyToResult(eqt, "managed", result);
+        appendEquipmentPropertyToResult(eqt, "deleted", result);
         appendEquipmentPropertyToResult(eqt, "nbServicesAskedInProgress", result);
 
         var categories = eqt.events().stream().map(EventHypervisor::category).collect(Collectors.joining(","));
