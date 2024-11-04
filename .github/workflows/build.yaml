@@ -39,7 +39,7 @@ jobs:
       modules: ${{ steps.modules.outputs.matrix }}
     steps:
       - name: Install requests lib
-        run: sudo apt install python3-requests -y
+        run: sudo apt update && sudo apt install python3-requests -y
       - name: Get modules
         id: modules
         env:
