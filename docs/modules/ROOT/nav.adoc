@@ -1,1 +1,7 @@
-* xref:index.adoc[Welcome]
+* xref:index.adoc[Home]
+* xref:install.adoc[Installation guide]
+* xref:stream-equipment-enriched:index.adoc[Stream Equipment Enriched]
+* xref:stream-consumption-per-day:index.adoc[Stream Consumption Per Day]
+* xref:stream-camera-comptage:index.adoc[Stream Camera Comptage]
+
+

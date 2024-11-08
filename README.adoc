@@ -1,0 +1,8 @@
+== Provoly streams
+
+image:https://github.com/Provoly/provoly-streams/actions/workflows/build.yaml/badge.svg[link=https://github.com/Provoly/provoly-streams/actions/workflows/build.yaml, Build]
+image:https://github.com/Provoly/provoly-streams/actions/workflows/static-analysis.yaml/badge.svg[link=https://github.com/Provoly/provoly-streams/actions/workflows/static-analysis.yaml, Static analysis]
+image:https://github.com/Provoly/provoly-streams/actions/workflows/documentation.yaml/badge.svg[link=https://github.com/Provoly/provoly-streams/actions/workflows/documentation.yaml, Trigger documentation rebuild]
+
+
+include::docs/modules/ROOT/pages/install.adoc[]

@@ -1,0 +1,50 @@
+@startuml
+
+title Stream Equipment Enriched interactions
+
+
+queue equipment [
+equipment
+[kafka]
+]
+
+queue measures [
+"class-{slug}_mesures"
+[kafka]
+]
+
+queue dataset [
+dataset-enriched-measure
+[kafka]
+]
+
+database database [
+database
+[kuzzle]
+]
+
+component provoly {
+component virt [
+data-virt
+[quarkus]
+]
+}
+
+
+component enriched [
+stream-equipment-enriched
+[quarkus]
+]
+
+
+equipment -d-> enriched
+measures -d-> enriched
+
+enriched -r-> dataset : enrich equipment with its measurments
+
+virt -u-> dataset
+
+database <- virt : save enriched equipment in kuzzle
+
+
+@enduml

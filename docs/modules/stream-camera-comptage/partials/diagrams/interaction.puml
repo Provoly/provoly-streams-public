@@ -1,0 +1,50 @@
+@startuml
+
+title Stream Equipment Enriched interactions
+
+
+queue equipment [
+equipment
+[kafka]
+]
+
+queue measures [
+"class-{slug}_multi-mode-mesures"
+[kafka]
+]
+
+queue dataset [
+dataset-comptage-enrichi-camera
+[kafka]
+]
+
+database database [
+database
+[kuzzle]
+]
+
+component provoly {
+component virt [
+data-virt
+[quarkus]
+]
+}
+
+
+component enriched [
+stream-camera-comptage
+[quarkus]
+]
+
+
+equipment -d-> enriched
+measures -d-> enriched
+
+enriched -r-> dataset : update last mode count at this date for a camera
+
+virt -u-> dataset
+
+database <- virt : save last mode countf for equipment in kuzzle
+
+
+@enduml

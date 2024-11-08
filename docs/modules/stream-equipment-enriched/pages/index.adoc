@@ -1,0 +1,184 @@
+= Stream Equipment Enriched
+
+This stream application enrich equipments that come from the `Provoly Hypervisor` with their associated measurements that come from `*Kuzzle*`.
+
+== How it works
+
+=== 1. Data model init
+==== Model measures
+First, Provoly needs to know the measure's data models to use for enrichment. It must be a `KUZZLE_MEASURE` storage.
+
+Example :
+----
+{
+    "id": "1c314411-e44f-4da6-8520-2c72961e95b2",
+    "name": "Camera mesure",
+    "storage": "KUZZLE_MEASURE",
+    "attributes": [
+        {
+            "id": "1348ee71-bb54-4415-834f-b8f901e62956",
+            "technicalName": "reference",
+            "field": "d3640d94-1cda-4f2a-9365-6a88530fae64"
+        },
+        {
+            "id": "8fbb712b-d091-4b21-a148-d91ad9d0227e",
+            "technicalName": "usedLicences",
+            "field": "c6096007-0cc6-43e5-920f-f8fe25724cf6"
+        },
+         {
+            "id": "a156d22a-eb2a-479a-94ac-86ce8560f90d",
+            "technicalName": "etat",
+            "field": "260e0235-af0c-4d32-8c21-a586a62698e0"
+        },
+        {
+            "id": "1aaa0351-3cb4-4861-a45e-4efe04f82773",
+            "technicalName": "measuredAt",
+            "field": "795e696f-1951-4837-8eaa-0a6f6bdd9ab8"
+        }
+    ],
+    "metadata": [
+        {
+            "metadataDefId": "b6f5502f-4412-4858-b181-ddf6c100820f",
+            "value": "CameraAsset"
+        },
+        {
+            "metadataDefId": "2e734460-c1c1-4785-9902-aebb772e58f0",
+            "value": "camera-vp-mesure"
+        }
+    ]
+}
+----
+
+At start, Provoly subscribes to all Kuzzle measures collections. As soon as a measurement is inserted, Provoly is notified. A data model search is performed for the received measurement, and sent it to a dedicated topic (the topic name corresponds to the data model name).
+
+[WARNING]
+--
+If data model is not present, the measurement is ignored.
+--
+
+==== Enriched equipment measures
+It's also necessary to provide the target data model. For enriched equipment, target model is :
+
+----
+{
+    "id": "e62a08cb-485e-40f6-aa30-e04c1a001bb5",
+    "name": "Equipement enrichi mesure",
+    "attributes": [
+        {
+            "id": "f5c5c117-43c8-4d24-9d8f-fcf4a076855c",
+            "technicalName": "family",
+            "field": "802c64b3-8c16-4e92-ba8f-f51fb8cd9378"
+        },
+         {
+            "id": "37f278b8-01c8-444c-b1e8-8249ab493196",
+            "technicalName": "domain",
+            "field": "802c64b3-8c16-4e92-ba8f-f51fb8cd9378"
+        },
+        {
+            "id": "25b5de6e-7498-4a66-802c-88281865f304",
+            "technicalName": "category",
+            "field": "802c64b3-8c16-4e92-ba8f-f51fb8cd9378"
+        },
+         {
+            "id": "23b252b1-2651-4c0e-8757-8922b47fb14c",
+            "technicalName": "criticality",
+            "field": "802c64b3-8c16-4e92-ba8f-f51fb8cd9378"
+        },
+         {
+            "id": "24b252b1-2651-4c0e-8757-8922b47fb34d",
+            "technicalName": "entity",
+            "field": "802c64b3-8c16-4e92-ba8f-f51fb8cd9378"
+        },
+        {
+            "id": "a31782be-c4e2-4c65-ac6f-211e1002706e",
+            "technicalName": "code",
+            "field": "d3640d94-1cda-4f2a-9365-6a88530fae64"
+        },
+        {
+            "id": "d49bfe06-2bbe-42f7-97a7-058e2058347b",
+            "technicalName": "place",
+            "field": "d3640d94-1cda-4f2a-9365-6a88530fae64"
+        },
+        {
+            "id": "0933905b-b22a-4fd2-be47-1bed11505a2c",
+            "technicalName": "reference",
+            "field": "d3640d94-1cda-4f2a-9365-6a88530fae64"
+        },
+         {
+            "id": "859edecf-d29f-4ce8-9ec0-23be5a5f7667",
+            "technicalName": "managed",
+            "field": "c6096007-0cc6-43e5-920f-f8fe25724cf6"
+        },
+        {
+            "id": "ed77e55d-b1e3-41b7-9b55-952873703d49",
+            "technicalName": "position",
+            "field": "e235fac9-11b3-4e6b-873d-8c46a73eadf1"
+        },
+        {
+            "id": "cd9d6da7-39ff-4761-8412-5b933a25f92a",
+            "technicalName": "consommation",
+            "field": "c6096007-0cc6-43e5-920f-f8fe25724cf6"
+        },
+        {
+            "id": "eff50232-015a-47c4-bc21-5ea6d44b986b",
+            "technicalName": "etat",
+            "field": "260e0235-af0c-4d32-8c21-a586a62698e0"
+        },
+         {
+            "id": "fdbc0187-42f9-4ae0-bbdc-f2a4bf934fc0",
+            "technicalName": "deleted",
+            "field": "d3640d94-1cda-4f2a-9365-6a88530fae64"
+        },
+         {
+            "id": "37471f5c-5236-4d36-9dd1-2f1ceab8b1a0",
+            "technicalName": "usedLicences",
+            "field": "c6096007-0cc6-43e5-920f-f8fe25724cf6"
+        },
+         {
+            "id": "349faf6f-9d7a-4528-a76b-19e2d16281ae",
+            "technicalName": "nbServicesAskedInProgress",
+            "field": "260e0235-af0c-4d32-8c21-a586a62698e0"
+        },
+         {
+            "id": "26e5fe7f-91af-41a6-b686-225ef928bf04",
+            "technicalName": "serviceCategory",
+            "field": "802c64b3-8c16-4e92-ba8f-f51fb8cd9378"
+        },
+         {
+            "id": "bd750fbe-a979-4bcb-b7f9-ca5eba2b14a5",
+            "technicalName": "measuredAt",
+            "field": "795e696f-1951-4837-8eaa-0a6f6bdd9ab8"
+        }
+    ],
+    "storage": "KUZZLE"
+}
+----
+
+=== 2. Enrich equipments
+
+Then, `stream-equipment-enriched` listen to all measurements topics (`class-{slug}_mesures`) and the `equipment` topic, performs a join and generated new equipment enriched item as a key/value map, and send it to a topic listened by Provoly (`dataset-{first_10_chars_slug}_equipement-enrichi-mesure`).
+
+[NOTE]
+--
+Topic name must match `dataset-{dataset_slug}`.
+--
+
+=== 3. Enriched equipment insertion
+
+Finally, this record is validated and inserted in corresponding dataset. The item id is configured to overwrite existing equipment to update its information or measurements.
+
+== Interaction
+Here's a summarized version of the application's interactions
+
+[plantuml]
+----
+include::partial$diagrams/interaction.puml[]
+----
+
+
+== Model
+
+[plantuml]
+----
+include::partial$diagrams/mcd.puml[]
+----

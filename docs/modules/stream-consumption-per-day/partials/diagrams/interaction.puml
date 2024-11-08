@@ -1,0 +1,50 @@
+@startuml
+
+title Stream Equipment Enriched interactions
+
+
+queue equipment [
+equipment
+[kafka]
+]
+
+queue measures [
+"class-{slug}_armoire_mesures"
+[kafka]
+]
+
+queue dataset [
+dataset-consumption-per-day
+[kafka]
+]
+
+database database [
+database
+[kuzzle]
+]
+
+component provoly {
+component virt [
+data-virt
+[quarkus]
+]
+}
+
+
+component enriched [
+stream-consumption-per-day
+[quarkus]
+]
+
+
+equipment -d-> enriched
+measures -d-> enriched
+
+enriched -r-> dataset : update last daily consumption for equipment
+
+virt -u-> dataset
+
+database <- virt : save last daily consumption for equipment in kuzzle
+
+
+@enduml

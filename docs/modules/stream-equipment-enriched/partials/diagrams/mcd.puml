@@ -1,0 +1,36 @@
+@startuml
+
+title Stream Equipment Enriched model
+
+class EventHypervisor {
+}
+
+class EquipmentHypervisor {
+}
+
+
+class ServiceHypervisor {
+}
+
+class AttributeDto {
+}
+
+class AttributeSimpleValueDto {
+}
+
+class AttributeMultiValueDto {
+}
+
+class ItemDto {
+}
+
+EquipmentHypervisor "1" -- "0..n" ServiceHypervisor: Contains
+EquipmentHypervisor "1" -- "0..n" EventHypervisor: Contains
+
+AttributeDto <|-- AttributeSimpleValueDto
+AttributeDto <|-- AttributeMultiValueDto
+
+ItemDto "1" -- "0..n" AttributeDto: Contains
+
+
+@enduml

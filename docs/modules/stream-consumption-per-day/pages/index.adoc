@@ -1,0 +1,114 @@
+= Stream Consumption Per Day
+
+This stream application keep up to date the latest daily power consumption of each `_armoire_` equipment coming from the `*Provoly Hypervisor*`.
+
+== How it works
+
+=== 1. Data model init
+==== Model measures
+First, Provoly needs to know the measure's data models to use for enrichment. It must be a `KUZZLE_MEASURE` storage.
+
+Example :
+----
+{
+    "id": "0c3b9ae2-4cf4-4e0e-88ab-68c1dfb60a7c",
+    "name": "Armoire mesures",
+    "storage": "KUZZLE_MEASURE",
+    "attributes": [
+        {
+            "id": "9d8dbaf0-79b1-45b7-a847-b7e40b2a1915",
+            "technicalName": "reference",
+            "field": "d3640d94-1cda-4f2a-9365-6a88530fae64"
+        },
+        {
+            "id": "b8bc2d8f-7995-4787-824a-2fa1dbca7e4a",
+            "technicalName": "position",
+            "field": "e235fac9-11b3-4e6b-873d-8c46a73eadf1"
+        },
+        {
+            "id": "e320e26b-c386-4a90-8b16-428bf451ae20",
+            "technicalName": "consommation",
+            "field": "c6096007-0cc6-43e5-920f-f8fe25724cf6"
+        },
+        {
+            "id": "8e01ab41-4b85-4191-b5d6-782980c2ffd8",
+            "technicalName": "etat",
+            "field": "260e0235-af0c-4d32-8c21-a586a62698e0"
+        },
+        {
+            "id": "5a222c30-acc3-4bb7-9795-c63b715649c5",
+            "technicalName": "measuredAt",
+            "field": "795e696f-1951-4837-8eaa-0a6f6bdd9ab8"
+        }
+    ],
+    "metadata": [
+        {
+            "metadataDefId": "b6f5502f-4412-4858-b181-ddf6c100820f",
+            "value": "ArmoireAsset"
+        },
+        {
+            "metadataDefId": "2e734460-c1c1-4785-9902-aebb772e58f0",
+            "value": "armoire-ep-mesure"
+        }
+    ]
+}
+----
+
+At start, Provoly subscribes to all Kuzzle measures collections. As soon as a measurement is inserted, Provoly is notified. A data model search is performed for the received measurement, and sent it to a dedicated topic (the topic name corresponds to the data model name).
+
+[WARNING]
+--
+If data model is not present, the measurement is ignored.
+--
+
+==== Consumption per day
+It's also necessary to provide the target data model. For enriched equipment, target model is :
+
+----
+{
+    "id": "5196941a-b134-44bc-91c0-12103f216f8e",
+    "name": "Consommation journaliere Armoire",
+    "attributes": [
+        {
+            "id": "593e65c1-4598-4b83-bb5b-6e3e563b6be6",
+            "technicalName": "reference",
+            "field": "d3640d94-1cda-4f2a-9365-6a88530fae64"
+        },
+        {
+            "id": "a711f476-6bb8-4244-a964-a4255c0b6e5c",
+            "technicalName": "consommation",
+            "field": "c6096007-0cc6-43e5-920f-f8fe25724cf6"
+        },
+        {
+            "id": "d76a980d-bf87-40b6-ae68-0d8db374beda",
+            "technicalName": "measuredAt",
+            "field": "795e696f-1951-4837-8eaa-0a6f6bdd9ab8"
+        }
+    ],
+    "storage": "KUZZLE"
+}
+----
+
+=== 2. Get day consumption for equipment
+
+Then, `stream-consumption-per-day` listen to all `_armoire_` measurements topics (`class-{first_10_chars_slug}\_armoire-mesures`) and the `equipment` topic, and build an item as a key/value map with the updated power consumption by equipment. A specific key `{equipment_code}_{date}` is set, and send item to a topic listened by Provoly.
+
+=== 3. Equipment consumption insertion
+
+Finally, this record is validated and inserted in corresponding dataset. The item id is configured to overwrite existing equipment consumption for the day.
+
+== Interaction
+Here's a summarized version of the application's interactions :
+
+[plantuml]
+----
+include::partial$diagrams/interaction.puml[]
+----
+
+
+== Model
+
+[plantuml]
+----
+include::partial$diagrams/mcd.puml[]
+----

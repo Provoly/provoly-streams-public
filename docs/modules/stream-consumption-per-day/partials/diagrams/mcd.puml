@@ -1,0 +1,24 @@
+@startuml
+
+title Stream Consumption Per Day model
+
+class AttributeDto {
+}
+
+class AttributeSimpleValueDto {
+}
+
+class AttributeMultiValueDto {
+}
+
+class ItemDto {
+}
+
+
+AttributeDto <|-- AttributeSimpleValueDto
+AttributeDto <|-- AttributeMultiValueDto
+
+ItemDto "1" -- "0..n" AttributeDto: Contains
+
+
+@enduml

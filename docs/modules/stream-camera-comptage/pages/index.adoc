@@ -1,0 +1,126 @@
+= Stream Camera Comptage
+
+this stream recovers _multi-mode count_ measurements and joins them to the corresponding `_camera_` equipment coming from the `*Provoly Hypervisor*`.
+
+The multi-mode counting returns a record containing, for a camera and a transport mode, the number of passages for this type of transport since a given date.
+
+== How it works
+
+=== 1. Data model init
+==== Model measures
+First, Provoly needs to know the measure's data models to use for enrichment. It must be a `KUZZLE_MEASURE` storage.
+
+Example :
+----
+{
+    "id": "a465aaba-35f1-4810-b2a3-31372b32c83f",
+    "name": "multi mode mesures",
+    "storage": "KUZZLE_MEASURE",
+    "attributes": [
+        {
+            "id": "659d7475-9a9c-400b-872c-77e2bdbaa354",
+            "technicalName": "camera_code",
+            "field": "d3640d94-1cda-4f2a-9365-6a88530fae64"
+        },
+        {
+            "id": "1bd9dfcc-c56d-4027-9e39-f49d9b1b6879",
+            "technicalName": "category",
+            "field": "d3640d94-1cda-4f2a-9365-6a88530fae64"
+        },
+         {
+            "id": "61ffcb3c-7a86-4f7f-8bdf-42d9713ba9ee",
+            "technicalName": "value",
+            "field": "c6096007-0cc6-43e5-920f-f8fe25724cf6"
+        },
+        {
+            "id": "ce29de15-2fba-48bb-9008-ea41e3c75e02",
+            "technicalName": "measuredAt",
+            "field": "795e696f-1951-4837-8eaa-0a6f6bdd9ab8"
+        }
+    ],
+    "metadata": [
+        {
+            "metadataDefId": "b6f5502f-4412-4858-b181-ddf6c100820f",
+            "value": "ComptageMultiModeAsset"
+        },
+        {
+            "metadataDefId": "2e734460-c1c1-4785-9902-aebb772e58f0",
+            "value": "comptage-multi-mode-vp-mesure"
+        }
+    ]
+}
+----
+
+At start, Provoly subscribes to all Kuzzle measures collections. As soon as a measurement is inserted, Provoly is notified. A data model search is performed for the received measurement, and sent it to a dedicated topic (the topic name corresponds to the data model name).
+
+[WARNING]
+--
+If data model is not present, the measurement is ignored.
+--
+
+==== Consumption per day
+It's also necessary to provide the target data model. For enriched multi-mode count, target model is :
+
+----
+{
+    "id": "d777106d-067c-4db8-bd2c-3a5cfd0a8ba7",
+    "name": "Comptage enrichi camera",
+    "storage": "KUZZLE"
+    "attributes": [
+        {
+            "id": "f1cce303-ef0f-4ee9-bb73-493617672fee",
+            "technicalName": "code",
+            "field": "d3640d94-1cda-4f2a-9365-6a88530fae64"
+        },
+        {
+            "id": "0a7421ac-3442-4c53-aa62-81349e5e5d6d",
+            "technicalName": "category",
+            "field": "d3640d94-1cda-4f2a-9365-6a88530fae64"
+        },
+        {
+            "id": "60242a21-55e2-42d6-954b-e83768bf6d6d",
+            "technicalName": "entity",
+            "field": "d3640d94-1cda-4f2a-9365-6a88530fae64"
+        },
+        {
+            "id": "851503f0-5570-4d9f-84c3-4c6e7bc77a80",
+            "technicalName": "place",
+            "field": "d3640d94-1cda-4f2a-9365-6a88530fae64"
+        },
+        {
+            "id": "0f8bb253-3198-4c3e-937c-3c5b84337882",
+            "technicalName": "value",
+            "field": "c6096007-0cc6-43e5-920f-f8fe25724cf6"
+        },
+        {
+            "id": "9f992a3b-144a-4598-9bb8-005c4bba73e0",
+            "technicalName": "measuredAt",
+            "field": "795e696f-1951-4837-8eaa-0a6f6bdd9ab8"
+        }
+    ]
+}
+----
+
+=== 2. Get multi mode measurements
+
+Then, `stream-camera-comptage` listen to _multi-mode count_ measurements topic (`class-{first_10_chars_slug}\_multi-mode-mesures`) and the `equipment` topic, and build an item as a key/value map with the new multi-mode count by camera equipment and transport category. A specific key `{camera_code}_{date}_{transport_category}` is set, and send item to a topic listened by Provoly.
+
+=== 3. Camera multi mode count insertion
+
+Finally, this record is validated and inserted in corresponding dataset. The item id is configured to overwrite existing count mode at this date for a camera .
+
+== Interaction
+Here's a summarized version of the application's interactions :
+
+[plantuml]
+----
+include::partial$diagrams/interaction.puml[]
+----
+
+
+== Model
+
+[plantuml]
+----
+include::partial$diagrams/mcd.puml[]
+----

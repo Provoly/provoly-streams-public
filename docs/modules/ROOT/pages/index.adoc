@@ -1,67 +1,67 @@
-= A guide for new contributors
+= Provoly Stream
 
-== Install Environment
+The aim of this project is to contain all the modules that need to perform data transformations and convert them into Provoly items.
 
-The required languages and tools to work on the project are specified in the `.tools_version` file in the root folder.
+To do this, the data model, storage type and dataset definition must first be entered into Provoly. Transformed items inserted into topics will then be consumed by Provoly and inserted into the corresponding database, in the corresponding dataset.
 
-Nonetheless, *docker* or *podman* must be available in your environment
+[NOTE]
+--
+The dataset definition must be `*MODIFIABLE*` or `*OPEN*`. It's not possible yet to define `*CLOSED*` dataset with data as it comes in.
+--
 
-* Docker v.*20*
+== Steps
 
-`asdf` related documentation can be found xref:provoly-doc:processus:outils.adoc[here]
+==== 1. Define the data model for transformed items in Provoly
+There are three types of storage in Provoly (`*ELASTIC*`,`*POSTGIS*`,`*KUZZLE*`), but not all of them are available. Make sure storage is available before.
 
-== IntelliJ Setup
-
-Open the Preferences window (or Settings depending on your edition), navigate to Plugins and install the Adapter for Eclipse Code Formatter from the Marketplace.
-
-Restart your IDE, open the Preferences (or Settings) window again and navigate to Adapter for Eclipse Code Formatter section on the left pane.
-
-Select Use Eclipse's Code Formatter, then change the Eclipse workspace/project folder or config file to point to the eclipse-format.xml file in the independent-projects/ide-config/src/main/resources directory. Make sure the Optimize Imports box is ticked. Then, select Import Order from file and make it point to the eclipse.importorder file in the ide-config/src/main/resources directory.
-
-Next, disable wildcard imports: navigate to `Editor` -> `Code Style` -> `Java` -> `Imports` and set `Class count to use import with '\*'` to 5. Do the same with `Names count to use static import with '*'`.
-
-
-=== AsciiDoc
-
-Our technical documentation uses the plain text markup language *AsciiDoc*.
-
-In order to visualize your changes in the documentation, you will require the `AsciiDoc` plugin from the marketplace.
-
-After that, you have to enable *soft wraps* for the asciiDoc files : `general` -> `editor` -> `softwrap` -> *.adoc
-
-
-=== SonarLint
-Extension which finds and fixes coding issues in real-time.
-
-=== Run the formatter manually
-
-The following command must be run in the root folder.
+Example :
 
 [source,bash]
 ----
-mvn compile
+{
+    "id": "e62a08cb-485e-40f6-aa30-e04c1a001bb5",
+    "name": "Enrich equipment",
+    "storage": "KUZZLE"
+    "attributes": [
+        {
+            "id": "f5c5c117-43c8-4d24-9d8f-fcf4a076855c",
+            "technicalName": "family",
+            "field": "802c64b3-8c16-4e92-ba8f-f51fb8cd9378",
+        },
+        {
+            "id": "a31782be-c4e2-4c65-ac6f-211e1002706e",
+            "technicalName": "code",
+            "field": "d3640d94-1cda-4f2a-9365-6a88530fae64",
+        },
+        {
+            "id": "cd9d6da7-39ff-4761-8412-5b933a25f92a",
+            "technicalName": "consumption",
+            "field": "c6096007-0cc6-43e5-920f-f8fe25724cf6",
+        },
+        {
+            "id": "bd750fbe-a979-4bcb-b7f9-ca5eba2b14a5",
+            "technicalName": "measuredAt",
+            "field": "795e696f-1951-4837-8eaa-0a6f6bdd9ab8",
+
+        }
+    ]
+}
 ----
 
-When submitting a merge request the CI build will fail if the code isn't properly formatted, so it is recommended that you always run a full Maven build before submitting a pull request.
+==== 2. Define the dataset definition in Provoly
 
-== Architecture documentation
-
-The architecture documentation uses https://docs.structurizr.com/[Structurizr].
-
-An extended documentation can be found https://docs.structurizr.com/dsl/cookbook/[here].
-
-Simply run :
-
+Example :
 [source,bash]
 ----
-docker run --rm -v ./docs/structurizr:/usr/local/structurizr -p 9191:8080 structurizr/lite:2024.01.02
+{
+"id": "b4e7cde4-a18e-4ae8-bd48-acf928c7330c",
+"name": "Enrich equipment dataset",
+"oClass": "e62a08cb-485e-40f6-aa30-e04c1a001bb5",
+"type": "MODIFIABLE",
+"groups": ["AUTHENTICATED"]
+}
 ----
 
-As of now, exporting as svg is done as described https://docs.structurizr.com/ui/diagrams/export[here]
+==== 3. Retrieve the id of the generated dataset version
 
-As of now, no roles are specified, but this is subject to change in the future.
-
-== Deploy new stream module
-
-* update the parent `pom.xml` by adding the new module name
-* update `IMAGES_MAP` variable in `.github/update_values.yaml` by adding the module name and its image name.
+This id is necessary because it must be set in the configuration (`icon:file[] application.yaml`) of the module that will perform the transformation

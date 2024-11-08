@@ -9,9 +9,12 @@ jobs:
   dispatch-event:
     name: Dispatch event
     runs-on: provoly-runner
+    strategy:
+      matrix:
+        events: [ build-documentation-request, build-documentation-internal-request ]
     steps:
       - uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.GH_DISPATCH_TOKEN }}
           repository: provoly/provoly-doc
-          event-type: build-documentation-request
+          event-type:  ${{ matrix.events }}

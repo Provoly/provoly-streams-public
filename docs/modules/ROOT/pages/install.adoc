@@ -1,0 +1,73 @@
+= A guide for new contributors
+
+== Install Environment
+
+The required languages and tools to work on the project are specified in the `.tools_version` file in the root folder.
+
+Nonetheless, *docker* or *podman* must be available in your environment
+
+`asdf` related documentation can be found xref:https://asdf-vm.com/guide/getting-started.html#_3-install-asdf[here].
+
+== IntelliJ Setup
+
+=== Plugins
+Plugins to be installed are :
+
+* *Adapter for Eclispe Code Formatter*
+* *SonarLint*
+* *AsciiDoc*
+* *PlantUml Integration*
+
+==== Eclipse Code Formatter
+
+Open the Preferences (or Settings) window and navigate to *Adapter for Eclipse Code Formatter* section on the left pane.
+
+Select *`Use Eclipse's Code Formatter`*, then change the **`Eclipse workspace/project`** folder or config file to point to: +
+icon:file[] _stream-*/ide-config/src/main/resources/eclipse-format.xml_.
+
+Make sure the *`Optimize Imports`* box is ticked. Then, select *`Import Order from file`* and make it point to directory : +
+icon:folder[] _stream-*/ide-config/src/main/resources_ .
+
+Next, disable wildcard imports: navigate to `Editor` -> `Code Style` -> `Java` -> `Imports` and set `Class count to use import with '\*'` to 5.
+
+Do the same with `Names count to use static import with '*'`.
+
+==== SonarLint
+Extension which finds and fixes coding issues in real-time.
+
+
+==== AsciiDoc
+
+Our technical documentation uses the plain text markup language *AsciiDoc*.
+
+After that, you have to enable *soft wraps* for the asciiDoc files : `general` -> `editor` -> `softwrap` -> *.adoc
+
+
+=== Run the formatter manually
+
+The following command must be run in the root folder before committing on repository :
+
+[source,bash]
+----
+mvn compile
+----
+
+or
+
+[source,bash]
+----
+mvn spotless:apply
+----
+
+When submitting a merge request the CI build will fail if the code isn't properly formatted, so it is recommended that you always run a full Maven build before submitting a pull request.
+
+== Running locally
+
+All streams projects are configured to launch *kafka* devservice.
+It's possible to manage kafka topics thanks to the xref:https://quarkus.io/guides/kafka-dev-ui[Quarkus dev ui].
+
+
+== Deploy new stream module
+
+* update the parent `pom.xml` by adding the new module name
+* update `IMAGES_MAP` variable in  `icon:file[] .github/update_values.yaml` by adding the module name and its image name.
