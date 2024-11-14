@@ -61,7 +61,7 @@ public class TopologyProducer {
                 .map((key, value) -> KeyValue.pair((String) value.getSimple("camera_code"), value))
                 .toTable(Materialized.with(Serdes.String(), itemDtoSerde));
 
-        equipment.leftJoin(measures, this::join)
+        measures.leftJoin(equipment, this::join)
                 .toStream()
                 .process(() -> new Processor<String, JsonObject, String, JsonObject>() {
                     private ProcessorContext<String, JsonObject> context;
@@ -89,7 +89,7 @@ public class TopologyProducer {
         return "%s_%s_%s".formatted(value.getString("camera_code"), date, value.getString("category"));
     }
 
-    private JsonObject join(EquipmentHypervisor eqt, ItemDto measures) {
+    private JsonObject join(ItemDto measures, EquipmentHypervisor eqt) {
         var result = new JsonObject();
 
         appendEquipmentPropertyToResult(eqt, "code", result);
