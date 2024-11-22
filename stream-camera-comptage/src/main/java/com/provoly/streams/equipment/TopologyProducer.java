@@ -14,13 +14,9 @@ import io.vertx.core.json.JsonObject;
 
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.kstream.Consumed;
-import org.apache.kafka.streams.kstream.KTable;
-import org.apache.kafka.streams.kstream.Materialized;
-import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
@@ -52,17 +48,15 @@ public class TopologyProducer {
         KTable<String, EquipmentHypervisor> equipment = builder
                 .stream(equipmentTopic, Consumed.with(Serdes.String(), equipmentHypervisorSerde))
                 .filter((k, v) -> v.attributes().get("family").equals("VP_CAM"))
-                .toTable();
+                .toTable(Materialized.with(Serdes.String(), equipmentHypervisorSerde));
 
         Pattern measuresTopicName = Pattern.compile("class-([a-f0-9]{10})_multi-mode-mesures");
 
-        KTable<String, ItemDto> measures = builder
+        KStream<String, ItemDto> measures = builder
                 .stream(measuresTopicName, Consumed.with(Serdes.String(), itemDtoSerde))
-                .map((key, value) -> KeyValue.pair((String) value.getSimple("camera_code"), value))
-                .toTable(Materialized.with(Serdes.String(), itemDtoSerde));
+                .selectKey((key, value) -> value.getSimple("camera_code").toString());
 
-        measures.leftJoin(equipment, this::join)
-                .toStream()
+        measures.leftJoin(equipment, this::join, Joined.with(Serdes.String(), itemDtoSerde, equipmentHypervisorSerde))
                 .process(() -> new Processor<String, JsonObject, String, JsonObject>() {
                     private ProcessorContext<String, JsonObject> context;
 
