@@ -17,7 +17,7 @@ env:
 jobs:
   build:
     name: Build
-    runs-on: provoly-runner
+    runs-on: provoly-arc-runner-on-rancher
     steps:
       - uses: actions/checkout@v4
 
@@ -47,12 +47,13 @@ jobs:
       - name: Run sonar analysis
         env:
           SONAR_URL: ${{ secrets.SONAR_URL }}
-          SONAR_ADMIN_TOKEN: ${{ secrets.SONAR_ADMIN_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           mvn $MAVEN_CLI_OPTS -Dmaven.test.failure.ignore=true \
             verify org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar \
             -Dsonar.host.url=${{ env.SONAR_URL }}\
-            -Dsonar.login=${{ env.SONAR_ADMIN_TOKEN }}\
+            -Dsonar.login=${{ env.SONAR_TOKEN }}\
+            -Dsonar.projectKey=provoly-streams \
             -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json\
             -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html\
             -Dsonar.coverage.jacoco.xmlReportPaths=target/*/coverage/jacoco.xml
