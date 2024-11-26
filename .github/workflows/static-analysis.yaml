@@ -46,7 +46,7 @@ jobs:
 
       - name: Run sonar analysis
         env:
-          SONAR_URL: ${{ secrets.SONAR_URL }}
+          SONAR_URL: ${{ vars.SONAR_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           mvn $MAVEN_CLI_OPTS -Dmaven.test.failure.ignore=true \
