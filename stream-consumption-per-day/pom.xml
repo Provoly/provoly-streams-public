@@ -38,6 +38,7 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-kafka-streams</artifactId>
+      <version>	3.9.0</version>
     </dependency>
     <dependency>
       <groupId>io.strimzi</groupId>
@@ -100,6 +101,13 @@
       <artifactId>quarkus-test-security</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka-streams-test-utils</artifactId>
+      <version>3.7.1</version>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
   <build>
     <plugins>

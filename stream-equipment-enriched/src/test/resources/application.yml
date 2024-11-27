@@ -1,0 +1,11 @@
+quarkus:
+  kafka-streams:
+    topics: equipment
+  kafka:
+    devservices:
+      enabled: true
+      port: 9093
+
+provoly:
+  enriched_dataset_topic: equipement-enrichi-mesure
+  dataset_version_id: 72729e27-4ae4-4113-901b-12eb695a3389

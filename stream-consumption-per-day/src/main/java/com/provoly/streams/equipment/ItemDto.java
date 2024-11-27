@@ -22,12 +22,6 @@ public class ItemDto {
         this.oClass = oClass;
     }
 
-    public ItemDto(UUID oClass, UUID datasetId, String id, Map<String, AttributeDto> attributes) {
-        this.id = datasetId + "@" + id;
-        this.oClass = oClass;
-        this.attributes = attributes;
-    }
-
     public String getDatasetVersionId() {
         return this.id.split("@")[0];
     }
