@@ -1,8 +1,10 @@
 name: Static analysis
 
 on:
-  schedule:
-    - cron: '0 5 * * 1'
+  pull_request:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 concurrency:
