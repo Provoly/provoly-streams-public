@@ -69,5 +69,6 @@ It's possible to manage kafka topics thanks to the xref:https://quarkus.io/guide
 
 == Deploy new stream module
 
-* update the parent `pom.xml` by adding the new module name
+* update the parent `icon:file[] pom.xml` by adding the new module name
+* update the coverage `icon:file[] pom.xml` by adding the new module name
 * update `IMAGES_MAP` variable in  `icon:file[] .github/update_values.yaml` by adding the module name and its image name.
