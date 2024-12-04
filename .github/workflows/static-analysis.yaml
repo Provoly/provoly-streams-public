@@ -51,11 +51,11 @@ jobs:
           SONAR_URL: ${{ vars.SONAR_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn $MAVEN_CLI_OPTS -Dmaven.test.failure.ignore=true \
+          mvn -Dmaven.test.failure.ignore=true \
             verify org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar \
             -Dsonar.host.url=${{ env.SONAR_URL }}\
             -Dsonar.login=${{ env.SONAR_TOKEN }}\
             -Dsonar.projectKey=provoly-streams \
-            -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json\
-            -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html\
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/*/coverage/jacoco.xml
+            -Dsonar.dependencyCheck.jsonReportPath=${{ github.workspace }}/target/dependency-check-report.json\
+            -Dsonar.dependencyCheck.htmlReportPath=${{ github.workspace }}/target/dependency-check-report.html\
+            -Dsonar.coverage.jacoco.xmlReportPaths=${{ github.workspace }}/target/**/coverage/jacoco.xml

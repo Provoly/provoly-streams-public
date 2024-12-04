@@ -1,4 +1,4 @@
-package com.provoly;
+package com.provoly.streams.equipment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -8,9 +8,6 @@ import java.util.List;
 import java.util.UUID;
 
 import jakarta.inject.Inject;
-
-import com.provoly.streams.equipment.ItemDto;
-import com.provoly.streams.equipment.TopologyProducer;
 
 import io.quarkus.kafka.client.serialization.JsonObjectSerde;
 import io.quarkus.kafka.client.serialization.ObjectMapperSerde;

@@ -6,13 +6,64 @@
 
     <groupId>com.provoly</groupId>
     <artifactId>provoly-streams</artifactId>
-    <version>1.1.0</version>
+    <version>0.1.0</version>
     <packaging>pom</packaging>
 
     <modules>
+        <module>coverage</module>
+        <module>parent</module>
         <module>stream-consumption-per-day</module>
         <module>stream-equipment-enriched</module>
         <module>stream-camera-comptage</module>
     </modules>
+
+    <profiles>
+        <!--CVE CHECK-->
+        <profile>
+            <id>cve</id>
+            <activation>
+                <property>
+                    <name>cve</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.owasp</groupId>
+                        <artifactId>dependency-check-maven</artifactId>
+                        <version>11.1.0</version>
+                        <configuration>
+                            <formats>
+                                <format>html</format>
+                                <format>json</format>
+                            </formats>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+            <reporting>
+                <plugins>
+                    <plugin>
+                        <groupId>org.owasp</groupId>
+                        <artifactId>dependency-check-maven</artifactId>
+                        <version>11.1.0</version>
+                        <reportSets>
+                            <reportSet>
+                                <reports>
+                                    <report>aggregate</report>
+                                </reports>
+                            </reportSet>
+                        </reportSets>
+                        <configuration>
+                            <formats>
+                                <format>html</format>
+                                <format>json</format>
+                            </formats>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </reporting>
+        </profile>
+    </profiles>
 
 </project>

@@ -46,7 +46,7 @@ jobs:
           NEO_LOG_LEVEL: DEBUG
         uses: hellofresh/action-changed-files@v3
         with:
-          pattern: (?P<module>(?!docs)[^/\.]+)/
+          pattern: (?P<module>(?!docs|parent|coverage|ide-config)[^/\.]+)/
 
   build:
     strategy:
