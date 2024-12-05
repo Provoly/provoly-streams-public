@@ -47,6 +47,8 @@ jobs:
         uses: hellofresh/action-changed-files@v3
         with:
           pattern: (?P<module>(?!docs|parent|coverage|ide-config)[^/\.]+)/
+          default-patterns: | 
+            parent/pom.xml
 
   build:
     strategy:
