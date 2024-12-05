@@ -333,13 +333,13 @@
                 </quarkus.jib.base-jvm-image>
                 <quarkus.jib.environment-variables></quarkus.jib.environment-variables>
                 <!--suppress UnresolvedMavenProperty -->
-                <quarkus.container-image.registry>${env.CI_REGISTRY_SERVER}</quarkus.container-image.registry>
+                <quarkus.container-image.registry>${env.REGISTRY_URL}</quarkus.container-image.registry>
                 <!--suppress UnresolvedMavenProperty -->
-                <quarkus.container-image.username>${env.CI_REGISTRY_USER}</quarkus.container-image.username>
+                <quarkus.container-image.username>${env.REGISTRY_USER}</quarkus.container-image.username>
                 <!--suppress UnresolvedMavenProperty -->
-                <quarkus.container-image.password>${env.CI_REGISTRY_PASSWORD}</quarkus.container-image.password>
+                <quarkus.container-image.password>${env.REGISTRY_PASSWORD}</quarkus.container-image.password>
                 <!--suppress UnresolvedMavenProperty -->
-                <quarkus.container-image.group>${env.CI_REGISTRY_PROJECT_NAME}</quarkus.container-image.group>
+                <quarkus.container-image.group>${env.REGISTRY_PROJECT_NAME}</quarkus.container-image.group>
                 <quarkus.container-image.push>true</quarkus.container-image.push>
             </properties>
         </profile>
