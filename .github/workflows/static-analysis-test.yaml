@@ -1,0 +1,89 @@
+name: Static analysis - TEST
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  JAVA_VERSION: 21
+  MAVEN_OPTS: "-Dorg.slf4j.simpleLogger.showDateTime=true -Djansi.force=true"
+  MAVEN_CLI_OPTS: "-Dstyle.color=always --batch-mode --errors --show-version -DinstallAtEnd=true -Dno-format -DdeployAtEnd=true"
+
+jobs:
+  generate-coverage:
+    name: Generate Coverage
+    runs-on: provoly-runner
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'maven'
+
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v5
+        with:
+          maven-version: 3.9.1
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: provoly-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            provoly-maven-
+
+      - name: Check cve and generate report
+        run: mvn ${{ env.MAVEN_CLI_OPTS }} -P cve org.owasp:dependency-check-maven:8.1.2:aggregate
+
+      - name: Generate Coverage
+        run: |
+          mvn -Dmaven.test.failure.ignore=true verify
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: ${{ github.workspace }}/target
+
+  sonar:
+    name: Sonar
+    runs-on: provoly-arc-runner-on-rancher
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: provoly-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            provoly-maven-
+
+      - name: Download coverage files
+        uses: actions/download-artifact@v4
+        with:
+          name: code-coverage-report
+          path: ${{ github.workspace }}/target
+
+      - run: ls -ail
+      - run: ls -ail target
+
+      - name: Run sonar analysis
+        env:
+          SONAR_URL: ${{ vars.SONAR_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar \
+            -Dsonar.host.url=${{ env.SONAR_URL }}\
+            -Dsonar.login=${{ env.SONAR_TOKEN }}\
+            -Dsonar.projectKey=provoly-streams \
+            -Dsonar.dependencyCheck.jsonReportPath=${{ github.workspace }}/target/dependency-check-report.json\
+            -Dsonar.dependencyCheck.htmlReportPath=${{ github.workspace }}/target/dependency-check-report.html\
+            -Dsonar.coverage.jacoco.xmlReportPaths=${{ github.workspace }}/target/**/coverage/jacoco.xml
