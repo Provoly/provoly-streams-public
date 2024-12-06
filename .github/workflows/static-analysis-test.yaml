@@ -53,6 +53,7 @@ jobs:
           path: ${{ github.workspace }}/target
 
   sonar:
+    needs: generate-coverage
     name: Sonar
     runs-on: provoly-arc-runner-on-rancher
     steps:
