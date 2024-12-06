@@ -234,11 +234,6 @@
                                 <goals>
                                     <goal>prepare-agent</goal>
                                 </goals>
-                                <configuration>
-                                    <!--<exclClassLoaders>*QuarkusClassLoader</exclClassLoaders>-->
-                                    <destFile>${maven.multiModuleProjectDirectory}/target/jacoco.exec</destFile>
-                                    <append>true</append>
-                                </configuration>
                             </execution>
                             <execution>
                                 <id>jacoco-report</id>
@@ -246,10 +241,6 @@
                                 <goals>
                                     <goal>report</goal>
                                 </goals>
-                                <configuration>
-                                    <dataFile>${maven.multiModuleProjectDirectory}/target/jacoco.exec</dataFile>
-                                    <outputDirectory>${maven.multiModuleProjectDirectory}/target/coverage</outputDirectory>
-                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
@@ -258,9 +249,6 @@
                         <version>${surefire-plugin.version}</version>
                         <configuration>
                             <argLine>${argLine}</argLine>
-                            <includes>
-                                <include>**/*Test.java</include>
-                            </includes>
                             <systemPropertyVariables>
                                 <quarkus.jacoco.data-file>${maven.multiModuleProjectDirectory}/target/jacoco.exec</quarkus.jacoco.data-file>
                                 <quarkus.jacoco.reuse-data-file>true</quarkus.jacoco.reuse-data-file>

@@ -1,4 +1,4 @@
-package com.provoly.streams.equipment;
+package com.provoly.streams.consumption;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -8,6 +8,10 @@ import java.util.stream.Collectors;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
+
+import com.provoly.streams.consumption.dto.AttributeMultiValueDto;
+import com.provoly.streams.consumption.dto.AttributeSimpleValueDto;
+import com.provoly.streams.consumption.dto.ItemDto;
 
 import io.quarkus.kafka.client.serialization.JsonObjectSerde;
 import io.quarkus.kafka.client.serialization.ObjectMapperSerde;
@@ -79,7 +83,7 @@ public class TopologyProducer {
 
         for (var measure : measures.getAttributes().entrySet()) {
             switch (measure.getValue()) {
-                case AttributeSimpleValueDto simple -> result.put(measure.getKey(), simple.value);
+                case AttributeSimpleValueDto simple -> result.put(measure.getKey(), simple.getValue());
                 case AttributeMultiValueDto multi -> result.put(measure.getKey(), multiToString(multi));
                 default -> throw new IllegalStateException("Unexpected value : " + measure.getValue());
             }
@@ -89,6 +93,6 @@ public class TopologyProducer {
     }
 
     private String multiToString(AttributeMultiValueDto multi) {
-        return multi.values.stream().map(Object::toString).collect(Collectors.joining(";"));
+        return multi.getValues().stream().map(Object::toString).collect(Collectors.joining(";"));
     }
 }

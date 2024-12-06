@@ -9,6 +9,8 @@ import java.util.UUID;
 
 import jakarta.inject.Inject;
 
+import com.provoly.streams.equipment.dto.ItemDto;
+
 import io.quarkus.kafka.client.serialization.JsonObjectSerde;
 import io.quarkus.kafka.client.serialization.ObjectMapperSerde;
 import io.quarkus.test.junit.QuarkusTest;

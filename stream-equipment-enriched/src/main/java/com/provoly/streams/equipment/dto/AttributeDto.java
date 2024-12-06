@@ -1,4 +1,4 @@
-package com.provoly.streams.equipment;
+package com.provoly.streams.equipment.dto;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -9,9 +9,17 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = AttributeMultiValueDto.class, name = "MULTI")
 })
 public class AttributeDto {
-    public AttributeType type;
+    protected AttributeType type;
+
+    public AttributeDto(AttributeType type) {
+        this.type = type;
+    }
 
     public AttributeType getType() {
         return type;
+    }
+
+    public void setType(AttributeType type) {
+        this.type = type;
     }
 }

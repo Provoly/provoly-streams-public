@@ -1,4 +1,4 @@
-package com.provoly.streams.equipment;
+package com.provoly.streams.comptage.dto;
 
 import java.util.HashMap;
 import java.util.List;
@@ -7,10 +7,10 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 
-public record EquipmentHypervisor(Map<String, Object> attributes,
-        List<EventHypervisor> events, List<ServiceHypervisor> services) {
+public record EquipmentHypervisorDto(Map<String, Object> attributes,
+        List<EventHypervisorDto> events, List<ServiceHypervisorDto> services) {
 
-    public EquipmentHypervisor {
+    public EquipmentHypervisorDto {
         if (attributes == null) {
             attributes = new HashMap<>();
         }

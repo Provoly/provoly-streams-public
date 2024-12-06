@@ -1,4 +1,4 @@
-package com.provoly.streams.equipment;
+package com.provoly.streams.consumption;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -7,6 +7,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import jakarta.inject.Inject;
+
+import com.provoly.streams.consumption.dto.ItemDto;
 
 import io.quarkus.kafka.client.serialization.JsonObjectSerde;
 import io.quarkus.kafka.client.serialization.ObjectMapperSerde;

@@ -1,4 +1,4 @@
-package com.provoly.streams.equipment;
+package com.provoly.streams.equipment.dto;
 
 import java.util.HashMap;
 import java.util.List;

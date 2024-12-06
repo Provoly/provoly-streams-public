@@ -1,4 +1,4 @@
-package com.provoly.streams.equipment;
+package com.provoly.streams.comptage;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -7,6 +7,11 @@ import java.util.stream.Collectors;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
+
+import com.provoly.streams.comptage.dto.AttributeMultiValueDto;
+import com.provoly.streams.comptage.dto.AttributeSimpleValueDto;
+import com.provoly.streams.comptage.dto.EquipmentHypervisorDto;
+import com.provoly.streams.comptage.dto.ItemDto;
 
 import io.quarkus.kafka.client.serialization.JsonObjectSerde;
 import io.quarkus.kafka.client.serialization.ObjectMapperSerde;
@@ -41,11 +46,11 @@ public class TopologyProducer {
     public Topology topologyService() {
         StreamsBuilder builder = new StreamsBuilder();
 
-        var equipmentHypervisorSerde = new ObjectMapperSerde<>(EquipmentHypervisor.class);
+        var equipmentHypervisorSerde = new ObjectMapperSerde<>(EquipmentHypervisorDto.class);
         var itemDtoSerde = new ObjectMapperSerde<>(ItemDto.class);
         var equipmentResultSerde = new JsonObjectSerde();
 
-        KTable<String, EquipmentHypervisor> equipment = builder
+        KTable<String, EquipmentHypervisorDto> equipment = builder
                 .stream(equipmentTopic, Consumed.with(Serdes.String(), equipmentHypervisorSerde))
                 .filter((k, v) -> v.attributes().get("family").equals("VP_CAM"))
                 .toTable(Materialized.with(Serdes.String(), equipmentHypervisorSerde));
@@ -83,7 +88,7 @@ public class TopologyProducer {
         return "%s_%s_%s".formatted(value.getString("camera_code"), date, value.getString("category"));
     }
 
-    private JsonObject join(ItemDto measures, EquipmentHypervisor eqt) {
+    private JsonObject join(ItemDto measures, EquipmentHypervisorDto eqt) {
         var result = new JsonObject();
 
         appendEquipmentPropertyToResult(eqt, "code", result);
@@ -93,7 +98,7 @@ public class TopologyProducer {
         if (measures != null) {
             for (var measure : measures.getAttributes().entrySet()) {
                 switch (measure.getValue()) {
-                    case AttributeSimpleValueDto simple -> result.put(measure.getKey(), simple.value);
+                    case AttributeSimpleValueDto simple -> result.put(measure.getKey(), simple.getValue());
                     case AttributeMultiValueDto multi -> result.put(measure.getKey(), multiToString(multi));
                     default -> throw new IllegalStateException("Unexpected value: " + measure.getValue());
                 }
@@ -102,13 +107,13 @@ public class TopologyProducer {
         return result;
     }
 
-    private void appendEquipmentPropertyToResult(EquipmentHypervisor eqt, String property, JsonObject result) {
+    private void appendEquipmentPropertyToResult(EquipmentHypervisorDto eqt, String property, JsonObject result) {
         if (eqt.attributes().get(property) != null) {
             result.put(property, eqt.attributes().get(property));
         }
     }
 
     private String multiToString(AttributeMultiValueDto multi) {
-        return multi.values.stream().map(Object::toString).collect(Collectors.joining(";"));
+        return multi.getValues().stream().map(Object::toString).collect(Collectors.joining(";"));
     }
 }

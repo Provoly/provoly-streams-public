@@ -1,4 +1,4 @@
-package com.provoly.streams.equipment;
+package com.provoly.streams.comptage.dto;
 
 public enum AttributeType {
     VALUE, //Meta and simple value
