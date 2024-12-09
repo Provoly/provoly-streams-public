@@ -17,9 +17,9 @@ env:
   MAVEN_CLI_OPTS: "-Dstyle.color=always --batch-mode --errors --show-version -DinstallAtEnd=true -Dno-format -DdeployAtEnd=true"
 
 jobs:
-  build:
-    name: Build
-    runs-on: provoly-arc-runner-on-rancher
+  generate-coverage:
+    name: Generate Coverage
+    runs-on: provoly-runner
     steps:
       - uses: actions/checkout@v4
 
@@ -35,6 +35,50 @@ jobs:
         with:
           maven-version: 3.9.1
 
+      - name: Get latest CVE version
+        run: curl https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json -o known_exploited_vulnerabilities.json
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        id: cache-maven
+        with:
+          path: ~/.m2/repository
+          key: provoly-maven-${{ hashFiles('**/pom.xml') }}-${{ hashFiles('known_exploited_vulnerabilities.json') }}
+          restore-keys: |
+            provoly-maven-${{ hashFiles('**/pom.xml') }}-${{ hashFiles('known_exploited_vulnerabilities.json') }}
+            provoly-maven-${{ hashFiles('**/pom.xml') }}
+            provoly-maven-
+
+      - name: Check cve and generate report
+        id: cve
+        run: mvn ${{ env.MAVEN_CLI_OPTS }} -P cve org.owasp:dependency-check-maven:8.1.2:aggregate
+
+      - name: Generate Coverage
+        run: |
+          mvn -Dmaven.test.failure.ignore=true verify
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: ${{ github.workspace }}/target
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "# Steps status " >> $GITHUB_STEP_SUMMARY
+          echo "| Step | State |" >> $GITHUB_STEP_SUMMARY
+          echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
+          echo "| Setting up runner | ${{ steps.cache-maven.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| CVE's | ${{ steps.cve.outcome }} |" >> $GITHUB_STEP_SUMMARY
+
+  sonar:
+    needs: generate-coverage
+    name: Sonar
+    runs-on: provoly-arc-runner-on-rancher
+    steps:
+      - uses: actions/checkout@v4
+
       - name: Cache local Maven repository
         uses: actions/cache@v4
         with:
@@ -43,19 +87,27 @@ jobs:
           restore-keys: |
             provoly-maven-
 
-      - name: Check cve and generate report
-        run: mvn ${{ env.MAVEN_CLI_OPTS }} -P cve org.owasp:dependency-check-maven:8.1.2:aggregate
+      - name: Download coverage files
+        uses: actions/download-artifact@v4
+        with:
+          name: code-coverage-report
+          path: ${{ github.workspace }}/target
 
       - name: Run sonar analysis
+        id: sonar
         env:
           SONAR_URL: ${{ vars.SONAR_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn -Dmaven.test.failure.ignore=true \
-            verify org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar \
+          mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar \
             -Dsonar.host.url=${{ env.SONAR_URL }}\
-            -Dsonar.login=${{ env.SONAR_TOKEN }}\
+            -Dsonar.token=${{ env.SONAR_TOKEN }}\
             -Dsonar.projectKey=provoly-streams \
             -Dsonar.dependencyCheck.jsonReportPath=${{ github.workspace }}/target/dependency-check-report.json\
             -Dsonar.dependencyCheck.htmlReportPath=${{ github.workspace }}/target/dependency-check-report.html\
-            -Dsonar.coverage.jacoco.xmlReportPaths=${{ github.workspace }}/coverage/target/site/jacoco-aggregate/jacoco.xml
+            -Dsonar.coverage.jacoco.xmlReportPaths=${{ github.workspace }}/target/jacoco-report/jacoco.xml
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "| Sonar |  ${{ steps.sonar.outcome }} |" >> $GITHUB_STEP_SUMMARY
