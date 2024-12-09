@@ -61,7 +61,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: code-coverage-report
-          path: ${{ github.workspace }}/target
+          path: ${{ github.workspace }}/*/target
 
       - name: Summary
         if: always()
