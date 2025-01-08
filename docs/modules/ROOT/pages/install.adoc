@@ -71,4 +71,4 @@ It's possible to manage kafka topics thanks to the xref:https://quarkus.io/guide
 
 * update the parent `icon:file[] pom.xml` by adding the new module name
 * update the coverage `icon:file[] pom.xml` by adding the new module name
-* update `IMAGES_MAP` variable in  `icon:file[] .github/update_values.yaml` by adding the module name and its image name.
+* update `IMAGES_MAP` environnement variable in  `icon:file[] .github/build.yaml` by adding the module name and its image name.
