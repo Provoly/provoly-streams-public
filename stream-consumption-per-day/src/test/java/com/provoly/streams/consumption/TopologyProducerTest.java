@@ -41,7 +41,7 @@ public class TopologyProducerTest {
         testDriver = new TopologyTestDriver(topologyProducer.topologyService());
 
         // setup test topics
-        inputTopic = testDriver.createInputTopic("class-aaaaaaaaaa_armoire-mesures", stringSerde.serializer(),
+        inputTopic = testDriver.createInputTopic("class-aaaaaaaaaa_armoire-consommation-mesures", stringSerde.serializer(),
                 itemDtoSerde.serializer());
         outputTopic = testDriver.createOutputTopic("consommation-journaliere-armoire", stringSerde.deserializer(),
                 equipmentResultSerde.deserializer());

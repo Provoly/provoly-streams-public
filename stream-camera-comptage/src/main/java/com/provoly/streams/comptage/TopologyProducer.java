@@ -55,7 +55,7 @@ public class TopologyProducer {
                 .filter((k, v) -> v.attributes().get("family").equals("VP_CAM"))
                 .toTable(Materialized.with(Serdes.String(), equipmentHypervisorSerde));
 
-        Pattern measuresTopicName = Pattern.compile("class-([a-f0-9]{10})_multi-mode-mesures");
+        Pattern measuresTopicName = Pattern.compile("class-([a-f0-9]{10})_multi-mode");
 
         KStream<String, ItemDto> measures = builder
                 .stream(measuresTopicName, Consumed.with(Serdes.String(), itemDtoSerde))

@@ -48,7 +48,7 @@ public class TopologyProducer {
         var itemDtoSerde = new ObjectMapperSerde<>(ItemDto.class);
         var equipmentResultSerde = new JsonObjectSerde();
 
-        Pattern measuresTopicName = Pattern.compile("class-([a-f0-9]{10})_armoire-mesures");
+        Pattern measuresTopicName = Pattern.compile("class-([a-f0-9]{10})_armoire-consommation-mesures");
 
         builder.stream(measuresTopicName, Consumed.with(Serdes.String(), itemDtoSerde))
                 .map((key, value) -> KeyValue.pair(buildKey(value), mapToJsonObject(value)))

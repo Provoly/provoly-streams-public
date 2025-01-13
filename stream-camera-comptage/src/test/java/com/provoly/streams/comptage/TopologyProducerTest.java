@@ -44,7 +44,7 @@ public class TopologyProducerTest {
         testDriver = new TopologyTestDriver(topologyProducer.topologyService());
 
         // setup test topics
-        inputTopicMultiModeMeasures = testDriver.createInputTopic("class-aaaaaaaaaa_multi-mode-mesures",
+        inputTopicMultiModeMeasures = testDriver.createInputTopic("class-aaaaaaaaaa_multi-mode",
                 stringSerde.serializer(), itemDtoSerde.serializer());
         inputTopicEquipments = testDriver.createInputTopic("equipment", stringSerde.serializer(),
                 equipmentResultSerde.serializer());
