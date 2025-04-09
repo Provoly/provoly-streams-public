@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - "main"
+      - "v1"
   pull_request:
 
 env:
@@ -80,14 +81,14 @@ jobs:
           username: ${{ secrets.REGISTRY_USER }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      - name: Sets env vars for main branch
+      - name: Sets env vars for V1 / V2 branch
         run: |
           export CI_SHORT_COMMIT_SHA=$(echo ${GITHUB_SHA} | cut -c1-8) >> $GITHUB_ENV
           echo CI_SHORT_COMMIT_SHA=$(echo ${GITHUB_SHA} | cut -c1-8) >> $GITHUB_ENV
           export "DOCKER_IMAGE_ADDITIONAL_TAGS=dev-$CI_SHORT_COMMIT_SHA,latest" >> $GITHUB_ENV
           echo "MAVEN_CLI_OPTS=-Dstyle.color=always --batch-mode --errors --show-version -DinstallAtEnd=true -DdeployAtEnd=true -Dquarkus.container-image.additional-tags=$DOCKER_IMAGE_ADDITIONAL_TAGS -Dquarkus.container-image.labels.\"git-ref\"=$CI_SHORT_COMMIT_SHA -DskipTests" >> $GITHUB_ENV
           echo "MAVEN_PROFILE=-Pdocker-image" >> $GITHUB_ENV
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v1'
 
       - name: Cache local Maven repository
         uses: actions/cache@v4
@@ -115,6 +116,20 @@ jobs:
           client-payload: |
             {
               "filename": "chalons/chalons-dev/provoly/values.yaml",
+              "field_names": "${{ env.MODULE_IMAGE_NAME }}",
+              "field_value": "dev-${{ env.CI_SHORT_COMMIT_SHA }}"
+            }
+
+      - name: Update values on chalons-int
+        if: github.ref == 'refs/heads/v1'
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GH_DISPATCH_TOKEN }}
+          repository: provoly/provoly-chart-values
+          event-type: update-chart-value
+          client-payload: |
+            {
+              "filename": "chalons/chalons-int/provoly/values.yaml",
               "field_names": "${{ env.MODULE_IMAGE_NAME }}",
               "field_value": "dev-${{ env.CI_SHORT_COMMIT_SHA }}"
             }
