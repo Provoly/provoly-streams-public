@@ -1,6 +1,8 @@
 package com.provoly.streams.equipment;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -13,6 +15,7 @@ import io.quarkus.kafka.client.serialization.JsonObjectSerde;
 import io.quarkus.kafka.client.serialization.ObjectMapperSerde;
 import io.vertx.core.json.JsonObject;
 
+import jakarta.inject.Inject;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -22,6 +25,7 @@ import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 public class TopologyProducer {
@@ -37,6 +41,9 @@ public class TopologyProducer {
 
     @ConfigProperty(name = "provoly.dataset_version_id")
     String datasetVersionId;
+
+    @Inject
+    Logger logger;
 
     @Produces
     public Topology topologyService() {
@@ -57,10 +64,7 @@ public class TopologyProducer {
                 .groupBy(((key, value) -> value.getSimple("reference")),
                         Grouped.with(Serdes.String(), itemDtoSerde));
 
-        KTable<String, ItemDto> reducedMeasures = measures.reduce((aggValue, newValue) -> {
-            aggValue.getAttributes().forEach((key, value) -> newValue.getAttributes().putIfAbsent(key, value));
-            return newValue;
-        });
+        KTable<String, ItemDto> reducedMeasures = measures.reduce(this::merge);
 
         equipment.leftJoin(reducedMeasures, this::join)
                 .toStream()
@@ -78,11 +82,110 @@ public class TopologyProducer {
                                 datasetVersionId.getBytes(StandardCharsets.UTF_8)));
                         record.headers().add(new RecordHeader("provoly-item-id",
                                 record.key().getBytes(StandardCharsets.UTF_8)));
+                        updateMeasureAt(record);
                         context.forward(record);
                     }
                 })
                 .to(enrichedDatasetTopic, Produced.with(Serdes.String(), equipmentResultSerde));
         return builder.build();
+    }
+
+    private static void updateMeasureAt(Record<String, JsonObject> record) {
+        // Remove temporary "measuredAt-" attributes and get the last one to measuredAt
+        JsonObject value = record.value();
+        var keysToRemove = value.fieldNames().stream()
+                .filter(key -> key.startsWith("measuredAt-"))
+                .toList();
+        var strLastDate = value.getString("measuredAt");
+
+        if (strLastDate == null && keysToRemove.isEmpty()) {
+            return; // No date at all, we do not add one
+        }
+        var lastDate = strLastDate==null?Instant.MIN:Instant.parse(strLastDate);
+
+        for (var key : keysToRemove) {
+            var date = Instant.parse(value.getString(key));
+            if (date.isAfter(lastDate)) {
+                lastDate = date;
+            }
+            value.remove(key);
+        }
+        value.put("measuredAt", lastDate.toString());
+    }
+
+    /**
+     * Merge the two values. We kept the one with is most recent by datasetId
+     * If there is no date, we kept
+     * resulting stream.
+     *
+     * @param currentValue : The current value
+     * @param newValue : The next value in the stream
+     * @return : The merged value
+     */
+    private ItemDto merge(ItemDto currentValue, ItemDto newValue) {
+
+        UUID datasetVersionId = newValue.getDatasetVersionId();
+        var measureDateAttributeName = "measuredAt-" + datasetVersionId;
+
+        var currentValueMeasureDate = getMeasureDateForDataSet(currentValue, datasetVersionId);
+        var newValueMeasureDate = getMeasureDateForDataSet(newValue, datasetVersionId);
+
+        if (newValueMeasureDate == null) { // No date in incoming measure
+            logger.warn("No measuredAt for " + datasetVersionId);
+            // If this warn never append, we can remove this and throw an exception
+            return update(measureDateAttributeName, Instant.now(), currentValue, newValue);
+        }
+
+        if (currentValueMeasureDate == null) {
+            return update(measureDateAttributeName, newValueMeasureDate, currentValue, newValue);
+        }
+
+        if (!newValueMeasureDate.isBefore(currentValueMeasureDate)) {
+            // We updating even if the date is the same
+            return update(measureDateAttributeName, newValueMeasureDate, currentValue, newValue);
+        } else {
+            // New value is after the current one, we ignoring the new value
+            return currentValue;
+        }
+
+    }
+
+    /**
+     * Get the measure date for the dataset version
+     *
+     * @param item : The item to get the measure date from
+     * @param datasetVersionId : The dataset version id
+     * @return : The measure date for the dataset version
+     */
+    private Instant getMeasureDateForDataSet(ItemDto item, UUID datasetVersionId) {
+        var measureDateAttributeName = "measuredAt-" + datasetVersionId;
+        String measureDate = item.getSimple(measureDateAttributeName);
+        if (measureDate == null) {
+            // If no date, check if the current item is the one for the current dataset
+            UUID itemDatasetId = item.getDatasetVersionId();
+            if (itemDatasetId != null && itemDatasetId.equals(datasetVersionId)) {
+                measureDate = item.getSimple("measuredAt");
+                if (measureDate != null) {
+                    return Instant.parse(measureDate);
+                }
+            }
+            return null;
+        }
+        return Instant.parse(measureDate);
+    }
+
+    /**
+     * /!\ This method is modifying the newValue object
+     * @param measureDateAttributeName : The name of the attribute containing the date for the current dataset
+     * @param currentValue : The current value
+     * @param newValue : The new value
+     * @return : The updated value (Reference to the newValue object updated)
+     */
+    private ItemDto update(String measureDateAttributeName, Instant newMeasureDate, ItemDto currentValue, ItemDto newValue) {
+        currentValue.getAttributes().forEach((key, value) -> newValue.getAttributes().putIfAbsent(key, value));
+        newValue.put(measureDateAttributeName, newMeasureDate);
+        return newValue;
+
     }
 
     private JsonObject join(EquipmentHypervisor eqt, ItemDto measures) {
